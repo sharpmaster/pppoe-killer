@@ -73,7 +73,7 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 END_EVENT_TABLE()
 
 MainFrame::MainFrame()
-       : wxFrame(NULL, PKID_MAINFRAME, _T("PPPoE Killer v0.3"),
+       : wxFrame(NULL, PKID_MAINFRAME, _T("PPPoE Killer v1.0"),
                  wxDefaultPosition, wxDefaultSize,
                  wxDEFAULT_FRAME_STYLE & ~ (wxRESIZE_BORDER | wxRESIZE_BOX | wxMAXIMIZE_BOX))
 {
@@ -141,9 +141,9 @@ void MainFrame::about(wxCommandEvent & event)
 	wxAboutDialogInfo info;
 
 	info.SetName(wxT("PPPoE Killer"));
-	info.SetVersion(wxT("v0.3"));
+	info.SetVersion(wxT("v1.0"));
 	info.SetWebSite(wxT("http://www.google.com/group/pppoe-killer"));
-	info.SetCopyright(wxT("(C) 2007 ptthippo@ptt.cc <pppoe-killer@gmail.com>"));
+	info.SetCopyright(wxT("(C) 2007 ptthippo@ptt.cc <ptthippo@gmail.com>"));
 
 	wxAboutBox(info);
 }
@@ -157,7 +157,7 @@ void MainFrame::close(wxCloseEvent& event)
 {
 	if(event.CanVeto())
 	{
-		m_tray->SetIcon(this->GetIcon(), "PPPoE Killer v0.3");
+		m_tray->SetIcon(this->GetIcon(), "PPPoE Killer v1.0");
 		this->Show(false);
 	}
 	else
