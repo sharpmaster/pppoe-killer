@@ -4,7 +4,6 @@
 #include <wx/wx.h>
 #endif
 #include <wx/tglbtn.h>
-#include <apr_general.h>
 #include <wx/grid.h>
 #include <wx/aboutdlg.h>
 #include "Resource.h"
@@ -37,7 +36,7 @@ bool MainApp::OnInit() {
 	prop.set("root.logger", "console");
 	prop.set("root.level", "warn");
 	prop.set("main.logger", "file");
-	prop.set("main.level", "debug");
+	prop.set("main.level", "warn");
 	prop.set("main.logger.filename", "pppoe_killer.log");
 	prop.set("main.logger.filesize", "5000");
 	prop.set("packet.logger", "file");
@@ -58,7 +57,6 @@ bool MainApp::OnInit() {
 	frame->Centre();
 	frame->Show(true);
 	SetTopWindow(frame);
-	//apr_terminate();
 	
 	return true;
 }

@@ -3,9 +3,6 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
-//#include <apr.h>
-//#include <apr_general.h>
-//#include <apr_xml.h>
 #include <fstream>
 #include <sstream>
 #include <boost/bind.hpp>
@@ -167,7 +164,7 @@ void MainFunction::padi_srcmac_detected(const unsigned char* srcmac)
 {
 	string mac;
 	boost::array<char, 6> macbin;
-	boost::ptr_map<string, VictimEntry>::iterator ite;
+	VITE ite;
 	boost::mutex::scoped_lock *lock;
 
 	copy(srcmac, srcmac+6, macbin.begin());
@@ -621,9 +618,9 @@ void MainFunction::pc_entermac()
 	}
 	
 
-	boost::mutex::scoped_lock *lock = new boost::mutex::scoped_lock(m_mutex);
+	boost::mutex::scoped_lock lock(m_mutex);
 	string macstr = getMACString(mac);
-	boost::ptr_map<string, VictimEntry>::iterator ite = m_victims.find(macstr);
+	VITE ite = m_victims.find(macstr);
 	if(ite == m_victims.end())
 	{
 		append_data(mac, m_func_ifname);
@@ -631,8 +628,6 @@ void MainFunction::pc_entermac()
 	}
 	else
 		::wxMessageBox(wxT("MAC¤w¦s¦b"), wxT("Error"), wxOK|wxICON_ERROR);
-	
-	delete lock;
 }
 
 /*

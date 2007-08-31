@@ -6,16 +6,15 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <boost/noncopyable.hpp>
 #include <glib/GLogger.h>
 #include "AutoKiller.h"
 
-class VictimEntry
+class VictimEntry : boost::noncopyable
 {
 public:
 	VictimEntry();
-	//std::string GetXMLElementStr();
-	//bool SetXMLElement(apr_xml_elem *e);
-
+		
 	void setMac(const boost::array<char, 6> & mac) {m_mac = mac;}
 	boost::array<char, 6> getMac() const {return m_mac;}
 	void setInterfaceName(const std::string & name) {m_ifname = name;}
