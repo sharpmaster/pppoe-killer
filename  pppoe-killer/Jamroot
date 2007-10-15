@@ -1,0 +1,18 @@
+exe pkiller : [ glob src/*.cpp ]
+			lib/GLib//glib
+			/site-config//libnet
+			/site-config//wpcap
+			/site-config//wxwidgets
+			: <use>/site-config//boost_1.34.1
+			<find-static-library>iphlpapi
+			<runtime-link>static
+			<link>static
+			<threading>multi
+			<variant>release
+			<toolset>msvc
+			<define>WIN32
+			<define>HAVE_REMOTE
+			<define>GLIB_STATIC
+			<user-interface>gui
+			;
+install dist : pkiller ;

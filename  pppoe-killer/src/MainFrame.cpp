@@ -6,6 +6,7 @@
 #include <wx/tglbtn.h>
 #include <wx/grid.h>
 #include <wx/aboutdlg.h>
+#include "pppoe.xpm"
 #include "Resource.h"
 #include <glib/GLogger.h>
 #include <glib/GProperties.h>
@@ -49,7 +50,7 @@ bool MainApp::OnInit() {
 	prop.set("autokiller.logger.filesize", "5000");
 	GLogger::configure(prop);
 
-	wxIcon icon(wxICON(PPPOEKILLER));
+	wxIcon icon(pppoe_xpm);
 	// Create the main frame window
 	MainFrame *frame = new MainFrame;
 	frame->SetIcon(icon);
