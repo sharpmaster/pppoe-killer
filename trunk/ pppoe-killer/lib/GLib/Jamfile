@@ -1,0 +1,40 @@
+project
+	: usage-requirements <include>include
+	;
+
+lib glib : [ glob src/*.cpp src/net/*.cpp ]
+		: <include>include
+		<use>/site-config//boost_1.34.1
+		<find-static-library>iphlpapi
+		<runtime-link>static
+		<link>static
+		<threading>multi
+		<variant>release
+		<toolset>msvc
+		<define>WIN32
+		<define>GLIB_STATIC
+		<define>GLIB_AUTO_LINK_NOMANGLE
+		;
+lib glib : [ glob src/*.cpp src/net/*.cpp ]
+		: <include>include
+		<use>/site-config//boost_1.34.1
+		<find-shared-library>iphlpapi
+		<runtime-link>shared
+		<link>shared
+		<threading>multi
+		<variant>release
+		<toolset>msvc
+		<define>WIN32
+		<define>GLIB
+		<define>GLIB_AUTO_LINK_NOMANGLE
+		;
+lib glib : [ glob src/*.cpp src/net/*.cpp ]
+		: <include>include
+		<use>/site-config//boost_1.34.1
+		<link>static
+		<threading>multi
+		<variant>release
+		<toolset>gcc
+		<define>GLIB_STATIC
+		<define>GLIB_AUTO_LINK_NOMANGLE
+		;
