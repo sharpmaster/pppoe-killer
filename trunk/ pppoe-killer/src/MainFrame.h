@@ -33,6 +33,7 @@ public:
 	void exit(wxCommandEvent& event);
 	void about(wxCommandEvent& event);
 	void close(wxCloseEvent& event);
+	void preference(wxCommandEvent& event);
 
 	wxMenu* GetTrayMenu();
 

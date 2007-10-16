@@ -13,6 +13,7 @@
 #include <glib/net/GNetTool.h>
 #include "MainFrame.h"
 #include "MainFunction.h"
+#include "PreferenceDialog.h"
 
 using namespace glib;
 using namespace glib::net;
@@ -68,6 +69,7 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 	EVT_MENU(PKID_LOAD, MainFrame::forward)
 	EVT_MENU(PKID_EXIT, MainFrame::exit)
 	EVT_MENU(PKID_RESTORE, MainFrame::menu_restore)
+	EVT_MENU(PKID_SETTING, MainFrame::preference)
 	EVT_MENU(wxID_ABOUT, MainFrame::about)
 	EVT_TASKBAR_LEFT_DCLICK(MainFrame::tray_restore)
 	EVT_CLOSE(MainFrame::close)
@@ -76,7 +78,7 @@ END_EVENT_TABLE()
 MainFrame::MainFrame()
        : wxFrame(NULL, PKID_MAINFRAME, _T("PPPoE Killer v1.0"),
                  wxDefaultPosition, wxDefaultSize,
-                 wxDEFAULT_FRAME_STYLE & ~ (wxRESIZE_BORDER | wxRESIZE_BOX | wxMAXIMIZE_BOX))
+                 wxDEFAULT_FRAME_STYLE & ~ (wxRESIZE_BORDER | wxRESIZE_BORDER | wxMAXIMIZE_BOX))
 {
 	m_panel = new MainPanel(this);
 	m_tray = new MainTrayIcon(this);
@@ -90,6 +92,7 @@ MainFrame::MainFrame()
 	func_menu->Append(PKID_ENTERMAC, _T("輸入MAC(&M)"));
 	func_menu->Append(PKID_LOAD, _T("讀取(&L)"));
 	func_menu->Append(PKID_SAVE, _T("儲存(&S)"));
+	func_menu->Append(PKID_SETTING, _T("設定(&P)"));
 	func_menu->AppendSeparator();
 	func_menu->Append(PKID_EXIT, _T("結束(&X)"));
 	help_menu->Append(wxID_ABOUT, _T("關於(&A)"));
@@ -152,6 +155,13 @@ void MainFrame::about(wxCommandEvent & event)
 void MainFrame::exit(wxCommandEvent& event)
 {
 	Close(true);
+}
+
+void MainFrame::preference(wxCommandEvent & event)
+{
+	PreferenceDialog dialog(this);
+	dialog.SetSize(400, 300);
+	dialog.ShowModal();
 }
 
 void MainFrame::close(wxCloseEvent& event)
@@ -220,6 +230,8 @@ MainPanel::MainPanel(wxFrame *frame)
 	m_kill->PushEventHandler(m_mainfunc);
 	m_autokill->PushEventHandler(m_mainfunc);
 	m_maclist->PushEventHandler(m_mainfunc);
+
+	m_mainfunc->loadConfig();
 }
 
 MainFunction* MainPanel::GetMainFunction()

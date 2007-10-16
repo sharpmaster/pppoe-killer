@@ -38,6 +38,7 @@ MainFunction::MainFunction(wxComboBox* cards, wxListBox *list, wxStaticText *isp
 	m_pado_dtr = NULL;
 
 	fill(m_dstmac.begin(), m_dstmac.end(), (char)0);
+	m_packet_interval = 0;
 
 	int index = m_cards->GetSelection();
 	if(index == wxNOT_FOUND)
@@ -389,13 +390,36 @@ void MainFunction::pc_list_selected()
 	m_autokill_btn->SetValue(value);
 }
 
-
 template<class Archive>
-void MainFunction::serialize(Archive & ar, const unsigned int version)
+void MainFunction::save(Archive & ar, const unsigned int version) const
 {
 	for(int i = 0; i < 6; i++)
 		ar & m_dstmac[i];
 	ar & m_victims;
+	ar & m_packet_interval;
+}
+
+template<class Archive>
+void MainFunction::load(Archive & ar, const unsigned int version)
+{
+	/**
+	* Version 0 config
+	*
+	* 1. The MAC of ISP
+	* 2. The information of target victims
+	*/
+	for(int i = 0; i < 6; i++)
+		ar & m_dstmac[i];
+	ar & m_victims;
+
+	/**
+	* Version 1 config
+	* 
+	* 1. The transmitting interval of PADT packets
+	*
+	*/
+	if(version > 0)
+		ar & m_packet_interval;
 }
 
 template< class T >
@@ -419,14 +443,13 @@ void MainFunction::pc_save()
 	}
 }
 
-void MainFunction::pc_load()
+bool MainFunction::pc_load()
 {
 	ifstream ifs("pppoe.sav", ios::binary);
 
 	if(ifs.good() == false)
 	{
-		::wxMessageBox(wxT("無法開啟檔案"));
-		return;
+		return false;
 	}
 
 	clear_data();
@@ -441,7 +464,7 @@ void MainFunction::pc_load()
 	catch(const boost::archive::archive_exception & e)
 	{
 		::wxMessageBox(wxT(e.what()));
-		return;
+		return false;
 	}
 
 	boost::mutex::scoped_lock lock(m_mutex);
@@ -458,6 +481,8 @@ void MainFunction::pc_load()
 		m_maclist->Append(this->getliststr(*iter->second));
 		iter++;
 	}
+
+	return true;
 }
 
 /*
@@ -769,7 +794,10 @@ bool MainFunction::ProcessEvent(wxEvent& e)
 	else if(e.GetId() == PKID_SAVE && e.GetEventType() == wxEVT_COMMAND_MENU_SELECTED)
 		pc_save();
 	else if(e.GetId() == PKID_LOAD && e.GetEventType() == wxEVT_COMMAND_MENU_SELECTED)
-		pc_load();
+	{
+		if(pc_load() == false)
+			::wxMessageBox(_T("無法讀取檔案"));
+	}
 	else if(e.GetId() == PKID_ENTERMAC && e.GetEventType() == wxEVT_COMMAND_MENU_SELECTED)
 		pc_entermac();
 	
