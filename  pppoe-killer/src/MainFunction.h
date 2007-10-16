@@ -21,6 +21,12 @@ public:
 	MainFunction(wxComboBox* cards, wxListBox* list, wxStaticText *ispmac, wxToggleButton *autokill_btn);
 	~MainFunction();
 	bool ProcessEvent(wxEvent& e);
+
+	bool loadConfig() {return pc_load();}
+	void saveConfig() {pc_save();}
+
+	unsigned int getPacketInterval() {return m_packet_interval;}
+	void setPacketInterval(unsigned int value) {m_packet_interval = value;}
 	
 private:
 	GPacketDetector *m_padi_dtr;
@@ -32,11 +38,14 @@ private:
 	wxToggleButton *m_autokill_btn;
 
 	boost::mutex m_mutex;
+	
 	/**
 	* The data that will be saved
 	*/
 	boost::array<char, 6> m_dstmac;
 	boost::ptr_map<std::string, VictimEntry> m_victims;
+	unsigned int m_packet_interval;
+	
 	typedef boost::ptr_map<std::string, VictimEntry>::iterator VITE;
 
 	std::string m_func_ifname;
@@ -61,12 +70,17 @@ private:
 	void pc_autokill(wxToggleButton *btn);
 	void pc_list_selected();
 	void pc_save();
-	void pc_load();
+	bool pc_load();
 	void pc_entermac();
 	
 	friend class boost::serialization::access;
 	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version);
+	void save(Archive & ar, const unsigned int version) const;
+	template<class Archive>
+	void load(Archive & ar, const unsigned int version);
+	BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
+BOOST_CLASS_VERSION(MainFunction, 1)
+	
 #endif
