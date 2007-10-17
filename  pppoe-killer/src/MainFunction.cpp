@@ -289,7 +289,8 @@ void MainFunction::pc_kill()
 		return;
 	}
 
-	PADTGenerator padt(ite->second->getInterfaceName(), (unsigned char*)m_dstmac.data(), (unsigned char*)ite->second->getMac().data());
+	PADTGenerator padt(ite->second->getInterfaceName(), (unsigned char*)m_dstmac.data(),
+					(unsigned char*)ite->second->getMac().data(), m_packet_interval);
 	padt.start();
 	::wxBeginBusyCursor();
 	while(padt.isAlive() == true)
@@ -339,8 +340,8 @@ void MainFunction::pc_autokill(wxToggleButton *btn)
 												new AutoKiller(
 												(unsigned char*)ite->second->getMac().data(),
 												(unsigned char*)m_dstmac.data(),
-												ite->second->getInterfaceName()
-												));
+												ite->second->getInterfaceName(),
+												m_packet_interval));
 			killer->AddReactor(boost::bind(&MainFunction::padi_srcmac_detected, this, _1));
 			ite->second->setAutoKiller(killer);
 		}
