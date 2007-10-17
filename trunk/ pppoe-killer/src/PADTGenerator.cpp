@@ -3,8 +3,8 @@
 
 using namespace glib;
 
-PADTGenerator::PADTGenerator(std::string & name, unsigned char *src, unsigned char *dst)
-: GPacketGenerator(name)
+PADTGenerator::PADTGenerator(std::string & name, unsigned char *src, unsigned char *dst, unsigned int interval)
+	: GPacketGenerator(name), m_interval(interval)
 {
 	memcpy(m_srcmac, src, 6);
 	memcpy(m_dstmac, dst, 6);
@@ -63,6 +63,9 @@ void PADTGenerator::run()
 			GERROR(*m_logger)("PADTGenerator ret==-1");
 			continue;
 		}
+
+		if(m_interval != 0)
+			GThread::sleep(m_interval);
 	}
 
 	GDEBUG(*m_logger)("PADTGenerator::run() ends");

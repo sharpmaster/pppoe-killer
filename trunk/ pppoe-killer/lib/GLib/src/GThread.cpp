@@ -2,6 +2,12 @@
 #include <boost/bind.hpp>
 #include <boost/thread/xtime.hpp>
 
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <time.h>
+#endif
+
 using namespace glib;
 
 GThread::GThread()
@@ -54,12 +60,23 @@ bool GThread::isAlive()
 
 void GThread::sleep(unsigned int millis)
 {
-	boost::xtime xt;
-	boost::xtime_get(&xt, boost::TIME_UTC);
-	xt.sec += millis/1000;
-	xt.nsec += ((millis%1000)*1000000);
+#ifdef WIN32
+	Sleep(millis);
+#else
+	struct timespec t;
 
-	boost::thread::sleep(xt);
+	if(millis > 1000)
+	{
+		t.tv_sec = millis/1000;
+		t.tv_nsec = (millis%1000)*1000000;
+	}
+	else
+	{
+		t.tv_sec = 0;
+		t.tv_nsec = millis*1000000;
+	}
+	nanosleep(&t, NULL);
+#endif
 }
 
 void GThread::join()

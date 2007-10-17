@@ -14,6 +14,10 @@ class AutoKiller;
 class VictimEntry;
 class boost::mutex;
 class wxGrid;
+class wxToggleButton;
+class wxStaticText;
+class wxListBox;
+class wxComboBox;
 
 class MainFunction : public wxEvtHandler
 {

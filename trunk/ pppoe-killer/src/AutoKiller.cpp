@@ -7,7 +7,8 @@
 using namespace std;
 using namespace glib;
 
-AutoKiller::AutoKiller(unsigned char *src, unsigned char *dst, string & card)
+AutoKiller::AutoKiller(unsigned char *src, unsigned char *dst, string & card, unsigned int interval)
+					: m_interval(interval)
 {
 	memcpy(m_srcmac, src, 6);
 	memcpy(m_dstmac, dst, 6);
@@ -35,7 +36,7 @@ void AutoKiller::padi_detected(const unsigned char* packet, int len)
 
 	msig_detected((const unsigned char*)m_srcmac);
 
-	padt_gnr = new PADTGenerator(m_card, m_dstmac, m_srcmac);
+	padt_gnr = new PADTGenerator(m_card, m_dstmac, m_srcmac, m_interval);
 
 	GThread::sleep(1000);
 	padt_gnr->start();
@@ -56,7 +57,7 @@ void AutoKiller::run()
 	padi_dtr->start();
 
 	// Kill the first time
-	padt = new PADTGenerator(m_card, m_dstmac, m_srcmac);
+	padt = new PADTGenerator(m_card, m_dstmac, m_srcmac, m_interval);
 	padt->start();
 	while(padt->isAlive() == true)
 		GThread::sleep(100);
@@ -68,4 +69,6 @@ void AutoKiller::run()
 	padi_dtr->stop();
 	while(padi_dtr->isAlive() == true)
 		GThread::sleep(100);
+
+	delete padi_dtr;
 }
