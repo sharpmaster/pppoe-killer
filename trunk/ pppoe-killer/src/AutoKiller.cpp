@@ -7,13 +7,11 @@
 using namespace std;
 using namespace glib;
 
-AutoKiller::AutoKiller(unsigned char *src, unsigned char *dst, string & card, unsigned int interval)
-					: m_interval(interval)
+AutoKiller::AutoKiller(const boost::array<char, 6> & src, const boost::array<char, 6> & dst,
+		const std::string & name, const unsigned int interval)
+		: Killer(KILLER_ID, src, dst, name, interval)
 {
-	memcpy(m_srcmac, src, 6);
-	memcpy(m_dstmac, dst, 6);
-	m_card = card;
-
+	m_padt_gnr.reset(new PADTGenerator(name, dst.data(), src.data(), interval));
 	m_logger = GLogger::getLogger("autokiller");
 }
 
@@ -24,9 +22,8 @@ AutoKiller::~AutoKiller()
 
 void AutoKiller::padi_detected(const unsigned char* packet, int len)
 {
-	PADTGenerator *padt_gnr;
-
-	if(memcmp(packet+6, m_srcmac, 6))
+	boost::array<char, 6> srcmac = getSrcMAC();
+	if(memcmp(packet+6, srcmac.data(), 6))
 	{
 		GDEBUG(*m_logger)("AutoKiller::padi_detected not me");
 		return;
@@ -34,41 +31,34 @@ void AutoKiller::padi_detected(const unsigned char* packet, int len)
 
 	GDEBUG(*m_logger)("AutoKiller::padi_detected");
 
-	msig_detected((const unsigned char*)m_srcmac);
+	msig_detected((const unsigned char*)srcmac.data());
 
-	padt_gnr = new PADTGenerator(m_card, m_dstmac, m_srcmac, m_interval);
+	boost::mutex::scoped_lock lock(m_padi_mutex);
+	boost::array<char, 6> dstmac = getDstMAC();
 
+	if(m_padt_gnr->isAlive())
+		m_padt_gnr->waitStop();
+
+	// wait for the victim to complete the initialization
 	GThread::sleep(1000);
-	padt_gnr->start();
-
-	while(padt_gnr->isAlive() == true)
-		GThread::sleep(100);
-
-	delete padt_gnr;
+	m_padt_gnr->start();
 }
 
-void AutoKiller::run()
+void AutoKiller::killthread()
 {
-	GPacketDetector *padi_dtr;
-	PADTGenerator *padt;
-
-	padi_dtr = new GPacketDetector("ether[0]=255 and ether proto 0x8863", m_card);
+	boost::scoped_ptr<GPacketDetector> padi_dtr(
+						new GPacketDetector("ether[0]=255 and ether proto 0x8863",
+								getCardName()));
 	padi_dtr->AddReactor(boost::bind(&AutoKiller::padi_detected, this, _1, _2));
 	padi_dtr->start();
 
 	// Kill the first time
-	padt = new PADTGenerator(m_card, m_dstmac, m_srcmac, m_interval);
-	padt->start();
-	while(padt->isAlive() == true)
-		GThread::sleep(100);
-	delete padt;
+	if(m_padt_gnr->isAlive() == false)
+		m_padt_gnr->start();
 
-	while(this->IsStopping() == false)
-		GThread::sleep(1000);
-
-	padi_dtr->stop();
-	while(padi_dtr->isAlive() == true)
+	while(!IsStopping())
 		GThread::sleep(100);
 
-	delete padi_dtr;
+	padi_dtr->waitStop();
+	m_padt_gnr->waitStop();
 }

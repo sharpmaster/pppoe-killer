@@ -31,7 +31,7 @@ public:
 	void setInterval(unsigned int value);
 	unsigned int getInterval();
 private:
-	wxTextCtrl *m_interval;
+	wxSpinCtrl *m_interval;
 };
 
 #endif

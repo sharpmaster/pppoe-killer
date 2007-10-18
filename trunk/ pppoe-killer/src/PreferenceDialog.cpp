@@ -2,6 +2,7 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/spinctrl.h>
 #include <boost/lexical_cast.hpp>
 #include "PreferenceDialog.h"
 #include "MainFunction.h"
@@ -57,7 +58,8 @@ PacketPanel::PacketPanel(wxWindow* parent)
 	wxBoxSizer *root_sizer = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText *interval_label = new wxStaticText(this, wxID_ANY, _T("封包發送間隔時間(毫秒)"));
 
-	m_interval = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_RIGHT);
+	m_interval = new wxSpinCtrl(this);
+	m_interval->SetRange(0, 10);
 	root_sizer->Add(interval_label, 0, wxALL, 5);
 	root_sizer->Add(m_interval, 0, wxALL, 5);
 	SetSizer(root_sizer);
@@ -67,19 +69,10 @@ PacketPanel::PacketPanel(wxWindow* parent)
 
 unsigned int PacketPanel::getInterval()
 {
-	long v;
-	wxString s = m_interval->GetValue();
-
-	if(s.ToLong(&v) == false)
-		v = 0;
-
-	if(v < 0)
-		v = 0;
-	
-	return (unsigned int)v;
+	return (unsigned int)m_interval->GetValue();
 }
 
 void PacketPanel::setInterval(unsigned int value)
 {
-	m_interval->SetValue(wxString::Format("%d", value));
+	m_interval->SetValue((int)value);
 }

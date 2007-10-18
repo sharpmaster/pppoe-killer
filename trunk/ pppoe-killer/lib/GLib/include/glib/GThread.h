@@ -21,6 +21,8 @@ namespace glib
 		virtual ~GThread();
 		void start();
 		void stop();
+		void waitStop();
+		bool timedStop(unsigned int millis);
 		bool isAlive();
 		static void sleep(unsigned int millis);
 		void join();

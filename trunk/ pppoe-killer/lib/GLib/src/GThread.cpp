@@ -53,6 +53,27 @@ void GThread::stop()
 	m_stopping = true;
 }
 
+void GThread::waitStop()
+{
+	stop();
+	while(this->isAlive())
+		GThread::sleep(100);
+}
+
+bool GThread::timedStop(unsigned int millis)
+{
+	unsigned int elapsed = 0;
+
+	stop();
+	while(this->isAlive() && elapsed < millis)
+	{
+		GThread::sleep(100);
+		elapsed += 100;
+	}
+
+	return !(this->isAlive());
+}
+
 bool GThread::isAlive()
 {
 	return m_running;

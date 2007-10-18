@@ -52,6 +52,7 @@ private:
 	wxListBox *m_maclist;
 	wxButton *m_kill;
 	wxToggleButton *m_autokill;
+	wxButton *m_mark;
 	wxStaticText *m_dstmac;
 
 	MainFunction *m_mainfunc;

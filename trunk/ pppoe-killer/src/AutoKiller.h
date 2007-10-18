@@ -3,28 +3,35 @@
 
 #include <glib/GThread.h>
 #include <glib/GLogger.h>
+#include <boost/scoped_ptr.hpp>
 #include <boost/signal.hpp>
 #include <boost/signals/slot.hpp>
+#include <boost/thread/mutex.hpp>
+#include "Killer.h"
 
-class AutoKiller : public glib::GThread
+class PADTGenerator;
+
+class AutoKiller : public Killer
 {
+public:
+	AutoKiller(const boost::array<char, 6> & src, const boost::array<char, 6> & dst,
+		const std::string & name, const unsigned int interval = 0);
+	~AutoKiller();
+	
+	static const int KILLER_ID = 0x1;
+	
+	void AddReactor(const boost::signal1<void, const unsigned char*>::slot_type& slot) {msig_detected.connect(slot);}
+	
+protected:
+	void killthread();
+	
 private:
-	unsigned char m_srcmac[6];
-	unsigned char m_dstmac[6];
-	std::string m_card;
-	unsigned int m_interval;
+	boost::mutex m_padi_mutex;
+	boost::scoped_ptr<PADTGenerator> m_padt_gnr;
 	glib::GBaseLogger *m_logger;
 	boost::signal1<void, const unsigned char*> msig_detected;
 
 	void padi_detected(const unsigned char* packet, int len);
-public:
-	AutoKiller(unsigned char *src, unsigned char *dst, std::string & name, unsigned int interval = 0);
-	~AutoKiller();
-	
-	void setPADTInterval(unsigned int v) {m_interval = v;}
-	unsigned int getPADTInterval() {return m_interval;}
-	void AddReactor(const boost::signal1<void, const unsigned char*>::slot_type& slot) {msig_detected.connect(slot);}
-	void run();
 };
 
 #endif
