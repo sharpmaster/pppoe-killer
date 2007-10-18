@@ -22,7 +22,7 @@ class wxComboBox;
 class MainFunction : public wxEvtHandler
 {
 public:
-	MainFunction(wxComboBox* cards, wxListBox* list, wxStaticText *ispmac, wxToggleButton *autokill_btn);
+	MainFunction(wxComboBox* cards, wxListBox* list, wxStaticText *ispmac, wxToggleButton *autokill_btn, wxButton *kill_btn);
 	~MainFunction();
 	bool ProcessEvent(wxEvent& e);
 
@@ -39,6 +39,7 @@ private:
 	wxComboBox *m_cards;
 	wxListBox *m_maclist;
 	wxStaticText *m_ispmac;
+	wxButton *m_kill_btn;
 	wxToggleButton *m_autokill_btn;
 
 	boost::mutex m_mutex;
@@ -72,6 +73,7 @@ private:
 	void pc_padi_detect(wxToggleButton *btn);
 	void pc_kill();
 	void pc_autokill(wxToggleButton *btn);
+	void pc_mark();
 	void pc_list_selected();
 	void pc_save();
 	bool pc_load();

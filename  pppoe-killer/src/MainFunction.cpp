@@ -16,6 +16,7 @@
 #include <glib/GTime.h>
 #include "Resource.h"
 #include "AutoKiller.h"
+#include "ManualKiller.h"
 #include "MainFunction.h"
 #include "GPacketDetector.h"
 #include "VictimEntry.h"
@@ -27,12 +28,13 @@ using namespace glib;
 using namespace glib::net;
 
 MainFunction::MainFunction(wxComboBox* cards, wxListBox *list, wxStaticText *ispmac,
-						   wxToggleButton *autokill_btn)
+						   wxToggleButton *autokill_btn, wxButton *kill_btn)
 {
 	m_cards = cards;
 	m_maclist = list;
 	m_ispmac = ispmac;
 	m_autokill_btn = autokill_btn;
+	m_kill_btn = kill_btn;
 
 	m_padi_dtr = NULL;
 	m_pado_dtr = NULL;
@@ -119,9 +121,7 @@ void MainFunction::clear_data()
 	VITE ite = m_victims.begin();
 	while(ite != m_victims.end())
 	{
-		ite->second->stopAutoKiller();
-		while(ite->second->isAutoKillerAlive())
-			GThread::sleep(10);
+		ite->second->stopKiller();
 		ite++;
 	}
 	m_victims.clear();
@@ -153,6 +153,9 @@ string MainFunction::getliststr(const VictimEntry & entry)
 	if(GNetTool::isLocalMAC(entry.getMac()) == true)
 		ret += " [我的電腦]";
 
+	ret += " ";
+	ret += entry.getDesc();
+	
 	return ret;
 }
 
@@ -238,15 +241,11 @@ void MainFunction::pc_padi_detect(wxToggleButton *btn)
 	}
 	else
 	{
-		m_padi_dtr->stop();
-		while(m_padi_dtr->isAlive() == true)
-			GThread::sleep(10);
+		m_padi_dtr->waitStop();
 		delete m_padi_dtr;
 		m_padi_dtr = NULL;
 
-		m_pado_dtr->stop();
-		while(m_pado_dtr->isAlive() == true)
-			GThread::sleep(10);
+		m_pado_dtr->waitStop();
 		delete m_pado_dtr;
 		m_pado_dtr = NULL;
 
@@ -289,14 +288,22 @@ void MainFunction::pc_kill()
 		return;
 	}
 
-	PADTGenerator padt(ite->second->getInterfaceName(), (unsigned char*)m_dstmac.data(),
-					(unsigned char*)ite->second->getMac().data(), m_packet_interval);
-	padt.start();
-	::wxBeginBusyCursor();
-	while(padt.isAlive() == true)
-		GThread::sleep(500);
-	::wxEndBusyCursor();
-	
+	if(ite->second->isKillerAlive())
+	{
+		ite->second->stopKiller();
+		m_kill_btn->SetLabel(_T("殺掉"));
+		m_autokill_btn->Enable();
+	}
+	else
+	{
+		boost::shared_ptr<Killer> killer = boost::shared_ptr<Killer>(
+								new ManualKiller(ite->second->getMac(), m_dstmac,
+									ite->second->getInterfaceName(), m_packet_interval));
+		ite->second->setKiller(killer);
+		ite->second->startKiller();
+		m_kill_btn->SetLabel(_T("中止"));
+		m_autokill_btn->Disable();
+	}
 }
 
 void MainFunction::pc_autokill(wxToggleButton *btn)
@@ -305,12 +312,14 @@ void MainFunction::pc_autokill(wxToggleButton *btn)
 	if(index == wxNOT_FOUND)
 	{
 		::wxMessageBox(wxT("Select a target"));
+		btn->SetValue(false);
 		return;
 	}
 
 	if(count(m_dstmac.begin(), m_dstmac.end(), (char)0) == 6)
 	{
 		::wxMessageBox(wxT("無法取得ISP MAC"));
+		btn->SetValue(false);
 		return;
 	}
 
@@ -334,37 +343,72 @@ void MainFunction::pc_autokill(wxToggleButton *btn)
 
 	if(btn->GetValue() == true)
 	{
-		if(ite->second->isAutoKillerExisted() == false)
-		{
-			boost::shared_ptr<AutoKiller> killer = boost::shared_ptr<AutoKiller>(
-												new AutoKiller(
-												(unsigned char*)ite->second->getMac().data(),
-												(unsigned char*)m_dstmac.data(),
-												ite->second->getInterfaceName(),
-												m_packet_interval));
-			killer->AddReactor(boost::bind(&MainFunction::padi_srcmac_detected, this, _1));
-			ite->second->setAutoKiller(killer);
-		}
-		ite->second->startAutoKiller();
+
+		boost::shared_ptr<AutoKiller> killer = boost::shared_ptr<AutoKiller>(
+											new AutoKiller(ite->second->getMac(),
+														m_dstmac,
+														ite->second->getInterfaceName(),
+														m_packet_interval));
+		killer->AddReactor(boost::bind(&MainFunction::padi_srcmac_detected, this, _1));
+		ite->second->setKiller(killer);
+		ite->second->startKiller();
+		m_kill_btn->Disable();
 	}
 	else
 	{
-		ite->second->stopAutoKiller();
-		while(ite->second->isAutoKillerAlive() == true)
-			GThread::sleep(100);
+		ite->second->stopKiller();
+		m_kill_btn->Enable();
+	}
+}
+
+void MainFunction::pc_mark()
+{
+	int index = m_maclist->GetSelection();
+	if(index == wxNOT_FOUND)
+	{
+		::wxMessageBox(wxT("Select a target"));
+		return;
+	}
+
+	wxString liststr = m_maclist->GetString(index);
+	wxString wxstr;
+	wxstr.assign(liststr, 0, 17);
+	string macstr = wxstr.To8BitData();
+
+	VITE ite = m_victims.find(macstr);
+	if(ite == m_victims.end())
+	{
+		::wxMessageBox(wxT("Critical error, restart the program"));
+		return;
+	}
+
+	string desc = ite->second->getDesc();
+
+	wxString input = ::wxGetTextFromUser(_T("輸入想要標記的描述"), _T("輸入"), desc);
+	ite->second->setDesc(string(input.c_str()));
+
+	for(unsigned int i = 0; i < m_maclist->GetCount(); i++)
+	{
+		if(m_maclist->GetString(i).find(wxString(macstr.c_str())) != string::npos)
+		{
+			m_maclist->SetString(i, this->getliststr(*ite->second));
+			break;
+		}
 	}
 }
 
 void MainFunction::pc_list_selected()
 {
-	bool value;
 	int index = m_maclist->GetSelection();
 	if(index == wxNOT_FOUND)
 		return;
 
 	wxString liststr = m_maclist->GetString(index);
 	if(liststr.find(wxT("我的電腦")) != string::npos)
-		value = false;
+	{
+		m_kill_btn->SetLabel(_T("殺掉"));
+		m_autokill_btn->SetValue(false);
+	}
 	else	
 	{
 		//::wxMessageBox(liststr);
@@ -381,14 +425,31 @@ void MainFunction::pc_list_selected()
 		}
 
 		
-		if(ite->second->isAutoKillerAlive() == true)
-			value = true;
+		if(ite->second->isKillerAlive())
+		{
+			if(ite->second->getKillerID() == ManualKiller::KILLER_ID)
+			{
+				m_kill_btn->SetLabel(_T("中止"));
+				m_kill_btn->Enable();
+				m_autokill_btn->SetValue(false);
+				m_autokill_btn->Disable();
+			}
+			else
+			{
+				m_kill_btn->SetLabel(_T("殺掉"));
+				m_kill_btn->Disable();
+				m_autokill_btn->SetValue(true);
+				m_autokill_btn->Enable();
+			}
+		}
 		else
-			value = false;
-
+		{
+			m_kill_btn->SetLabel(_T("殺掉"));
+			m_kill_btn->Enable();
+			m_autokill_btn->SetValue(false);
+			m_autokill_btn->Enable();
+		}
 	}
-
-	m_autokill_btn->SetValue(value);
 }
 
 template<class Archive>
@@ -789,6 +850,10 @@ bool MainFunction::ProcessEvent(wxEvent& e)
 		::wxBeginBusyCursor();
 		pc_autokill(btn);
 		::wxEndBusyCursor();
+	}
+	else if(e.GetId() == PKID_MARK && e.GetEventType() == wxEVT_COMMAND_BUTTON_CLICKED)
+	{
+		pc_mark();
 	}
 	else if(e.GetId() == PKID_MACLIST && e.GetEventType() == wxEVT_COMMAND_LISTBOX_SELECTED)
 		pc_list_selected();

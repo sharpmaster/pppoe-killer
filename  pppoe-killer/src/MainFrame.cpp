@@ -203,11 +203,13 @@ MainPanel::MainPanel(wxFrame *frame)
 
 	m_kill = new wxButton(this, PKID_KILL, "殺掉");
 	m_autokill = new wxToggleButton(this, PKID_AUTOKILL, "自動殺掉");
+	m_mark = new wxButton(this, PKID_MARK, "標記");
 	wxBoxSizer *toolbar_sizer = new wxBoxSizer(wxVERTICAL);
 	toolbar_sizer->Add(m_kill, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
 	toolbar_sizer->AddSpacer(5);
 	toolbar_sizer->Add(m_autokill, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
 	toolbar_sizer->AddSpacer(5);
+	toolbar_sizer->Add(m_mark, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
 	wxBoxSizer *list_sizer = new wxBoxSizer(wxHORIZONTAL);
 	list_sizer->Add(m_maclist, 1, wxEXPAND | wxALL, 10);
 	list_sizer->Add(toolbar_sizer, 0, wxEXPAND | wxALL);
@@ -225,10 +227,11 @@ MainPanel::MainPanel(wxFrame *frame)
 
 	SetSizer(root_sizer);
 
-	m_mainfunc = new MainFunction(m_cards, m_maclist, m_dstmac, m_autokill);
+	m_mainfunc = new MainFunction(m_cards, m_maclist, m_dstmac, m_autokill, m_kill);
 	m_detect->PushEventHandler(m_mainfunc);
 	m_kill->PushEventHandler(m_mainfunc);
 	m_autokill->PushEventHandler(m_mainfunc);
+	m_mark->PushEventHandler(m_mainfunc);
 	m_maclist->PushEventHandler(m_mainfunc);
 
 	m_mainfunc->loadConfig();

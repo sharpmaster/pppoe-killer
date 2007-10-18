@@ -13,7 +13,7 @@ private:
 
 	glib::GBaseLogger *m_logger;
 public:
-	PADTGenerator(std::string & name, unsigned char* src, unsigned char* dst,
+	PADTGenerator(const std::string & name, const char* src, const char* dst,
 		unsigned int interval = 0);
 	PADTGenerator::~PADTGenerator();
 	unsigned int getInterval() {return m_interval;}
