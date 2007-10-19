@@ -31,6 +31,7 @@ public:
 
 	unsigned int getPacketInterval() {return m_packet_interval;}
 	void setPacketInterval(unsigned int value) {m_packet_interval = value;}
+	void refreshButton();
 	
 private:
 	GPacketDetector *m_padi_dtr;
@@ -43,7 +44,7 @@ private:
 	wxToggleButton *m_autokill_btn;
 
 	boost::mutex m_mutex;
-	
+	boost::try_mutex m_listsel_mutex;
 	/**
 	* The data that will be saved
 	*/
@@ -78,6 +79,7 @@ private:
 	void pc_save();
 	bool pc_load();
 	void pc_entermac();
+	void pc_enterispmac();
 	
 	friend class boost::serialization::access;
 	template<class Archive>

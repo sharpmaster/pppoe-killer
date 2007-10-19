@@ -3,6 +3,8 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <boost/bind.hpp>
+#include <boost/thread/thread.hpp>
 #include <wx/tglbtn.h>
 #include <wx/grid.h>
 #include <wx/aboutdlg.h>
@@ -10,6 +12,7 @@
 #include "Resource.h"
 #include <glib/GLogger.h>
 #include <glib/GProperties.h>
+#include <glib/GThread.h>
 #include <glib/net/GNetTool.h>
 #include "MainFrame.h"
 #include "MainFunction.h"
@@ -65,6 +68,7 @@ bool MainApp::OnInit() {
 
 BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 	EVT_MENU(PKID_ENTERMAC, MainFrame::forward)
+	EVT_MENU(PKID_ENTERISPMAC, MainFrame::forward)
 	EVT_MENU(PKID_SAVE, MainFrame::forward)
 	EVT_MENU(PKID_LOAD, MainFrame::forward)
 	EVT_MENU(PKID_EXIT, MainFrame::exit)
@@ -83,13 +87,17 @@ MainFrame::MainFrame()
 	m_panel = new MainPanel(this);
 	m_tray = new MainTrayIcon(this);
 	wxMenu *func_menu = new wxMenu;
+	wxMenu *entermac_menu = new wxMenu;
 	wxMenu *help_menu = new wxMenu;
 	wxMenuBar *menu_bar = new wxMenuBar;
 
 	//m_tray->SetEvtHandlerEnabled(false);
 	m_tray->SetNextHandler(this);
 
-	func_menu->Append(PKID_ENTERMAC, _T("輸入MAC(&M)"));
+	entermac_menu->Append(PKID_ENTERMAC, _T("目標電腦(&T)"));
+	entermac_menu->Append(PKID_ENTERISPMAC, _T("ISP(&I)"));
+
+	func_menu->AppendSubMenu(entermac_menu, _T("輸入MAC(&M)"));
 	func_menu->Append(PKID_LOAD, _T("讀取(&L)"));
 	func_menu->Append(PKID_SAVE, _T("儲存(&S)"));
 	func_menu->Append(PKID_SETTING, _T("設定(&P)"));
@@ -101,6 +109,8 @@ MainFrame::MainFrame()
 	menu_bar->Append(help_menu, _T("說明(&H)"));
 	
 	SetMenuBar(menu_bar);
+
+	boost::thread *helper = new boost::thread(boost::bind(&MainFrame::helperthread, this));
 }
 
 MainFrame::~MainFrame()
@@ -112,6 +122,15 @@ void MainFrame::restore()
 {
 	m_tray->RemoveIcon();
 	Show(true);
+}
+
+void MainFrame::helperthread()
+{
+	while(true)
+	{
+		m_panel->GetMainFunction()->refreshButton();
+		GThread::sleep(500);
+	}
 }
 
 void MainFrame::menu_restore(wxCommandEvent & event)
