@@ -22,11 +22,11 @@ private:
 	MainTrayIcon *m_tray;
 	
 	void restore();
-
+	void helperthread();
 public:
 	MainFrame();
 	~MainFrame();
-	
+
 	void forward(wxCommandEvent& event);
 	void menu_restore(wxCommandEvent & event);
 	void tray_restore(wxTaskBarIconEvent & event);

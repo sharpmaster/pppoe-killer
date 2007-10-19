@@ -78,6 +78,11 @@ MainFunction::~MainFunction()
 	delete m_logger;
 }
 
+void MainFunction::refreshButton()
+{
+	pc_list_selected();
+}
+
 string MainFunction::getMACString(const boost::array<char, 6> & mac)
 {
 	stringstream ss;
@@ -399,9 +404,24 @@ void MainFunction::pc_mark()
 
 void MainFunction::pc_list_selected()
 {
+	boost::try_mutex::scoped_try_lock *lock;
+
+	try
+	{
+		lock = new boost::try_mutex::scoped_try_lock(m_listsel_mutex);
+	}
+	catch(const boost::lock_error & e)
+	{
+		delete lock;
+		return;
+	}
+	
 	int index = m_maclist->GetSelection();
 	if(index == wxNOT_FOUND)
+	{
+		delete lock;
 		return;
+	}
 
 	wxString liststr = m_maclist->GetString(index);
 	if(liststr.find(wxT("我的電腦")) != string::npos)
@@ -450,6 +470,8 @@ void MainFunction::pc_list_selected()
 			m_autokill_btn->Enable();
 		}
 	}
+
+	delete lock;
 }
 
 template<class Archive>
@@ -547,144 +569,6 @@ bool MainFunction::pc_load()
 	return true;
 }
 
-/*
-void MainFunction::pc_save()
-{
-	
-	VITE ite = m_victims.begin();
-	if(ite == m_victims.end())
-	{
-		::wxMessageBox(wxT("無資料"));
-		return;
-	}
-
-	std::fstream fs;
-	fs.open("pppoe.sav", std::ios_base::out | std::ios_base::trunc);
-
-	fs << "<?xml version=\"1.0\" ?>" << endl << "<root dstmac=\"";
-
-	if(count(m_dstmac.begin(), m_dstmac.end(), (char)0) != 6)
-	{
-		string s;
-		s.assign(m_dstmac.begin(), m_dstmac.end());
-		s = GBase64::Encode(s);
-		fs << s.c_str();
-	}
-	fs << "\">" << endl;
-	
-	while(ite != m_victims.end())
-	{
-		string str = ite->second->GetXMLElementStr();
-		fs << str.c_str() << endl;
-		ite++;
-	}
-
-	fs << "</root>" << endl;
-	fs.close();
-	
-}
-
-void MainFunction::pc_load()
-{
-	apr_pool_t *pool;
-	apr_file_t *fd;
-	apr_xml_parser *parser;
-	apr_xml_doc *doc;
-	apr_xml_elem* elem;
-	apr_status_t rv;
-
-	boost::ptr_map<std::string, VictimEntry> tmp_victims;
-	string tmp_dstmac;
-	boost::mutex::scoped_lock *lock;
-
-	(void) apr_initialize();
-	rv = apr_pool_create(&pool, NULL);
-	if(rv != APR_SUCCESS)
-	{
-		::wxMessageBox(wxT("Memory pool error"));
-		return;
-	}
-	
-	rv = apr_file_open(&fd, "pppoe.sav", APR_READ, APR_OS_DEFAULT, pool);
-	if (rv != APR_SUCCESS)
-	{
-		::wxMessageBox(wxT("Cannot load"));
-		apr_pool_destroy(pool);
-		return;
-	}
-
-	rv = apr_xml_parse_file(pool, &parser, &doc, fd, 2000);
-	if (rv != APR_SUCCESS)
-	{
-		apr_file_close(fd);
-		apr_pool_destroy(pool);
-
-		//load_old_savefile();
-		return;
-	}
-
-	if(doc->root == NULL)
-	{
-		::wxMessageBox(wxT("檔案內容錯誤"));
-		apr_file_close(fd);
-		apr_pool_destroy(pool);
-		return;
-	}
-
-	elem = doc->root->first_child;
-	while(elem)
-	{
-		VictimEntry *v = new VictimEntry();
-		if(v->SetXMLElement(elem))
-		{
-			string s = getMACString(v->getMac());
-			tmp_victims.insert(s, v);
-		}
-		else
-			delete v;
-
-		elem = elem->next;
-	}
-	string tmpmac_str = aprXmlGetPropString(doc->root, "dstmac", "");
-	if(tmpmac_str != "")
-		tmp_dstmac= GBase64::Decode(tmpmac_str);
-
-
-	if(tmp_victims.size() == 0)
-	{
-		::wxMessageBox(wxT("檔案內容錯誤, 沒有資料"));
-		apr_file_close(fd);
-		apr_pool_destroy(pool);
-		return;
-	}
-
-	lock = new boost::mutex::scoped_lock(m_mutex);
-
-	clear_data();
-	m_maclist->Clear();
-
-	if(tmpmac_str != "")
-	{
-		copy(tmp_dstmac.begin(), tmp_dstmac.end(), m_dstmac.begin());
-		string s = getMACString(m_dstmac);
-		m_ispmac->SetLabel(wxString::From8BitData(s.c_str()));
-	}
-	m_victims.transfer(tmp_victims);
-	VITE ite = m_victims.begin();
-	while(ite != m_victims.end())
-	{
-		m_maclist->Append(wxString::From8BitData(this->getliststr(*ite->second).c_str()));
-		ite++;
-	}
-
-	delete lock;
-	
-	apr_file_close(fd);
-	apr_pool_destroy(pool);
-	apr_terminate();
-}
-*/
-
 void MainFunction::pc_entermac()
 {
 	wxString s = ::wxGetTextFromUser(wxT("請依照格式輸入MAC ex. 00:AA:BB:CC:DD:EE"));
@@ -717,121 +601,28 @@ void MainFunction::pc_entermac()
 		::wxMessageBox(wxT("MAC已存在"), wxT("Error"), wxOK|wxICON_ERROR);
 }
 
-/*
-void MainFunction::load_old_savefile()
+void MainFunction::pc_enterispmac()
 {
-	GProperties prop;
-	char buf[16];
-	string::size_type oldidx, newidx;
-	int index = 0;
-	fstream fs;
+	wxString s = ::wxGetTextFromUser(wxT("請依照格式輸入MAC ex. 00:AA:BB:CC:DD:EE\n(一般來說不用手動輸入ISP MAC, 最簡單的方法是按下偵測,\n然後將自己的PPPoE連線重連就可以偵測到ISP MAC了)"));
+	if(s.IsEmpty())
+		return;
 
-	boost::ptr_map<std::string, VictimEntry> tmp_victims;
-	boost::mutex::scoped_lock *lock;
+	boost::array<char, 6> mac;
 
-	fs.open("pppoe.sav", ios_base::in);
-	prop.load(fs);
-	fs.close();
-
-	GINFO(*m_logger)("Loading start");
-
-	string value = prop.get("dstmac");
-	string result = "";
-	oldidx = 0;
-	unsigned char *tmp_dstmac = new unsigned char[6];
-	while(true)
+	try
 	{
-		newidx = value.find_first_of(',', oldidx);
-		if(newidx == string::npos)
-			break;
-
-		string intv = value.substr(oldidx, newidx);
-		*(tmp_dstmac+index++) = atoi(intv.c_str());
-		sprintf(buf, "%02X:", atoi(intv.c_str()));
-		intv = buf;
-		result += intv;
-	
-		oldidx = newidx+1;
-		if(oldidx >= value.size())
-			break;
+		mac = parseMAC(string(s.To8BitData()));
 	}
-	result = result.substr(0, result.size()-1);
-	GINFO(*m_logger)("Loading... dstmac %s loaded", result.c_str());
-	m_ispmac->SetLabel(result);
-
-	value = prop.get("srcmac_size");
-	int size = atoi(value.c_str());
-	GINFO(*m_logger)("Loading... srcmac size: %d", size);
-	for(int i = 0; i < size; i++)
+	catch(...)
 	{
-		sprintf(buf, "srcmac%d", i);
-		string key = buf;
-		value = prop.get(key);
-
-		oldidx = 0;
-		result = "";
-		index = 0;
-		unsigned char *mac = new unsigned char[6];
-
-		while(true)
-		{
-			newidx = value.find_first_of(',', oldidx);
-			if(newidx == string::npos)
-				break;
-			
-			string intv = value.substr(oldidx, newidx);
-			*(mac+index++) = atoi(intv.c_str());
-
-			sprintf(buf, "%02X:", atoi(intv.c_str()));
-			intv = buf;
-			result += intv;
-		
-			oldidx = newidx+1;
-			if(oldidx >= value.size())
-				break;
-		}
-
-		result = result.substr(0, result.size()-1);
-
-		VictimEntry *v = new VictimEntry();
-		memcpy(v->m_mac.get(), mac, 6);
-		
-		sprintf(buf, "srcmac%difname", i);
-		key = buf;
-		v->m_ifname = prop.get(key);
-
-		tmp_victims.insert(NetworkTool::GetMACString(v->m_mac.get()), v);
-
-		delete mac;
-	}
-	
-	GINFO(*m_logger)("Loading end");
-
-	if(tmp_victims.size() == 0)
-	{
-		::wxMessageBox("檔案內容錯誤, 沒有資料");
+		::wxMessageBox(wxT("輸入錯誤"), wxT("Error"), wxOK|wxICON_ERROR);
 		return;
 	}
 
-
-	lock = new boost::mutex::scoped_lock(m_mutex);
-	clear_data();
-	m_maclist->Clear();
-
-	m_dstmac = new unsigned char[6];
-	memcpy(m_dstmac, tmp_dstmac, 6);
-	delete tmp_dstmac;
-	m_victims.transfer(tmp_victims);
-	VITE ite = m_victims.begin();
-	while(ite != m_victims.end())
-	{
-		m_maclist->Append(this->getliststr(*ite->second));
-		ite++;
-	}
-
-	delete lock;
+	string macstr = getMACString(mac);
+	m_ispmac->SetLabel(macstr);
+	m_dstmac = mac;
 }
-*/
 
 bool MainFunction::ProcessEvent(wxEvent& e)
 {
@@ -866,6 +657,8 @@ bool MainFunction::ProcessEvent(wxEvent& e)
 	}
 	else if(e.GetId() == PKID_ENTERMAC && e.GetEventType() == wxEVT_COMMAND_MENU_SELECTED)
 		pc_entermac();
+	else if(e.GetId() == PKID_ENTERISPMAC && e.GetEventType() == wxEVT_COMMAND_MENU_SELECTED)
+		pc_enterispmac();
 	
 	e.Skip();
 	return false;
