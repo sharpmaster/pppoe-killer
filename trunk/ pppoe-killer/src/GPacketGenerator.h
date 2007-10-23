@@ -14,7 +14,7 @@ protected:
 	void* m_libc;
 public:
 	GPacketGenerator(const std::string & name);
-	~GPacketGenerator();
+	virtual ~GPacketGenerator();
 
 	void Clear();
 	virtual bool Send();

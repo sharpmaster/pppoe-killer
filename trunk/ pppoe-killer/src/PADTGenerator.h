@@ -15,7 +15,7 @@ private:
 public:
 	PADTGenerator(const std::string & name, const unsigned char* src, const unsigned char* dst,
 		unsigned int interval = 0);
-	PADTGenerator::~PADTGenerator();
+	~PADTGenerator();
 	unsigned int getInterval() {return m_interval;}
 	void setInterval(unsigned int v) {m_interval = v;}
 	
