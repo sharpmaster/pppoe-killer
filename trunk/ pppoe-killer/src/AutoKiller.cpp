@@ -7,7 +7,7 @@
 using namespace std;
 using namespace glib;
 
-AutoKiller::AutoKiller(const boost::array<char, 6> & src, const boost::array<char, 6> & dst,
+AutoKiller::AutoKiller(const boost::array<unsigned char, 6> & src, const boost::array<unsigned char, 6> & dst,
 		const std::string & name, const unsigned int interval)
 		: Killer(KILLER_ID, src, dst, name, interval)
 {
@@ -22,7 +22,7 @@ AutoKiller::~AutoKiller()
 
 void AutoKiller::padi_detected(const unsigned char* packet, int len)
 {
-	boost::array<char, 6> srcmac = getSrcMAC();
+	boost::array<unsigned char, 6> srcmac = getSrcMAC();
 	if(memcmp(packet+6, srcmac.data(), 6))
 	{
 		GDEBUG(*m_logger)("AutoKiller::padi_detected not me");
@@ -34,7 +34,7 @@ void AutoKiller::padi_detected(const unsigned char* packet, int len)
 	msig_detected((const unsigned char*)srcmac.data());
 
 	boost::mutex::scoped_lock lock(m_padi_mutex);
-	boost::array<char, 6> dstmac = getDstMAC();
+	boost::array<unsigned char, 6> dstmac = getDstMAC();
 
 	if(m_padt_gnr->isAlive())
 		m_padt_gnr->waitStop();

@@ -12,9 +12,9 @@ namespace net {
 	class GLIB_EXPORT GNetTool
 	{
 	public:
-		static boost::array<char, 6> parseMAC(const std::string & macstr);
-		static std::string getMACString(const boost::array<char, 6> & macbin);
-		static bool isLocalMAC(const boost::array<char, 6> & macbin);
+		static boost::array<unsigned char, 6> parseMAC(const std::string & macstr);
+		static std::string getMACString(const boost::array<unsigned char, 6> & macbin);
+		static bool isLocalMAC(const boost::array<unsigned char, 6> & macbin);
 		static std::vector<glib::net::GNetAdapter> getLocalAdapters();
 		static boost::asio::ip::address_v4 Resolve(const std::string & name);
 		static boost::asio::ip::tcp::endpoint ResolveTcpEndpoint(const std::string & name, const std::string & protocol);

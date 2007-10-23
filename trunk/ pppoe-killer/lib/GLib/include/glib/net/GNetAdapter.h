@@ -23,12 +23,12 @@ namespace net {
 		void setDescription(const std::string & description) {m_description = description;}
 		void addAddress(const boost::asio::ip::address_v4 & address, const boost::asio::ip::address_v4 & mask);
 		std::vector<boost::array<boost::asio::ip::address_v4, 2> > getAddresses() {return m_addresses;}
-		boost::array<char, 6> getMac() {return m_mac;}
-		void setMac(const boost::array<char, 6> & mac) {m_mac = mac;}
+		boost::array<unsigned char, 6> getMac() {return m_mac;}
+		void setMac(const boost::array<unsigned char, 6> & mac) {m_mac = mac;}
 	private:
 		std::string m_name;
 		std::string m_description;
-		boost::array<char, 6> m_mac;
+		boost::array<unsigned char, 6> m_mac;
 		std::vector<boost::array<boost::asio::ip::address_v4, 2> > m_addresses;
 	};
 }}

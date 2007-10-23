@@ -48,7 +48,7 @@ private:
 	/**
 	* The data that will be saved
 	*/
-	boost::array<char, 6> m_dstmac;
+	boost::array<unsigned char, 6> m_dstmac;
 	boost::ptr_map<std::string, VictimEntry> m_victims;
 	unsigned int m_packet_interval;
 	
@@ -58,10 +58,10 @@ private:
 
 	glib::GBaseLogger *m_logger;
 
-	std::string getMACString(const boost::array<char, 6> & mac);
-	boost::array<char, 6> parseMAC(const std::string & macstr);
+	std::string getMACString(const boost::array<unsigned char, 6> & mac);
+	boost::array<unsigned char, 6> parseMAC(const std::string & macstr);
 	void clear_data();
-	void append_data(const boost::array<char, 6> & macbin, std::string & ifname);
+	void append_data(const boost::array<unsigned char, 6> & macbin, std::string & ifname);
 	//VITE get_iterator(const std::string & macstr);
 	std::string getliststr(const VictimEntry & entry);
 

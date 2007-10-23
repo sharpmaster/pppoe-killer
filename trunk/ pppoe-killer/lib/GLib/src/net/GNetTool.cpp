@@ -2,6 +2,9 @@
 #ifdef WIN32
 #include <winsock2.h>
 #include <iphlpapi.h>
+#else
+#include <sys/socket.h>
+#include <net/if.h>
 #endif
 #include <sstream>
 #include <boost/foreach.hpp>
@@ -13,9 +16,9 @@ using namespace glib::net;
 using namespace boost::asio::ip;
 namespace ba = boost::algorithm;
 
-boost::array<char, 6> GNetTool::parseMAC(const string & macstr)
+boost::array<unsigned char, 6> GNetTool::parseMAC(const string & macstr)
 {
-	boost::array<char, 6> ret;
+	boost::array<unsigned char, 6> ret;
 
 	if(macstr.size() != 12)
 		throw invalid_argument("Length Error");
@@ -35,7 +38,7 @@ boost::array<char, 6> GNetTool::parseMAC(const string & macstr)
 	return ret;
 }
 
-string GNetTool::getMACString(const boost::array<char, 6> & macbin)
+string GNetTool::getMACString(const boost::array<unsigned char, 6> & macbin)
 {
 	string ret = "";
 	char buf[32];
@@ -47,7 +50,7 @@ string GNetTool::getMACString(const boost::array<char, 6> & macbin)
 	return ret;
 }
 
-bool GNetTool::isLocalMAC(const boost::array<char, 6> & macbin)
+bool GNetTool::isLocalMAC(const boost::array<unsigned char, 6> & macbin)
 {
 	vector<GNetAdapter> adapters;
 
@@ -93,7 +96,7 @@ vector<GNetAdapter> GNetTool::getLocalAdapters()
 			GNetAdapter adapter(pAdapter->AdapterName);
 
 			adapter.setDescription(pAdapter->Description);
-			boost::array<char, 6> mac;
+			boost::array<unsigned char, 6> mac;
 			for(int i = 0; i < 6; i++)
 				mac[i] = *(pAdapter->Address+i);
 			adapter.setMac(mac);
@@ -118,7 +121,85 @@ vector<GNetAdapter> GNetTool::getLocalAdapters()
 #else
 vector<GNetAdapter> GNetTool::getLocalAdapters()
 {
-	return vector<GNetAdapter>();
+	int sd;
+	int num;
+	char *pCardName;
+	char buf[1024];
+	
+	struct sockaddr_in *localSock;
+	unsigned long ip, mask;
+	boost::array<unsigned char, 6> mac;
+	
+	struct ifconf ifc;
+	short ifFlag;
+
+	vector<GNetAdapter> ret;
+
+	ifc.ifc_len = 1024;
+	ifc.ifc_buf = buf;
+	memset(buf, 0, 1024);
+	sd = socket(AF_INET, SOCK_DGRAM, 0);
+
+	if (ioctl(sd, SIOCGIFCONF, (char *)&ifc) < 0)
+		return vector<GNetAdapter>();
+
+	num = ifc.ifc_len / sizeof(struct ifreq);
+	for (int i = 0; i < num; i++)
+	{
+		pCardName = ifc.ifc_ifcu.ifcu_req[i].ifr_name;
+		if (pCardName == NULL)
+			continue;
+
+		if (ioctl(sd, SIOCGIFFLAGS, (char *)&(ifc.ifc_ifcu.ifcu_req[i])) < 0)
+			continue;
+
+		ifFlag = ifc.ifc_ifcu.ifcu_req[i].ifr_flags;
+		if (!(ifFlag & IFF_UP) || (ifFlag & IFF_LOOPBACK))
+			continue;
+		
+		localSock = (struct sockaddr_in *)&(ifc.ifc_ifcu.ifcu_req[i].ifr_addr);
+		ip = ntohl(localSock->sin_addr.s_addr);
+		if (ioctl(sd, SIOCGIFNETMASK, (char *)&(ifc.ifc_ifcu.ifcu_req[i])) < 0)
+			continue;
+		localSock = (struct sockaddr_in *)&(ifc.ifc_ifcu.ifcu_req[i].ifr_broadaddr);
+		mask = ntohl(localSock->sin_addr.s_addr);
+
+		if (ioctl(sd, SIOCGIFHWADDR, (char *)&(ifc.ifc_ifcu.ifcu_req[i])) < 0)
+		{
+			continue;
+		}
+		localSock = (struct sockaddr_in *)&(ifc.ifc_ifcu.ifcu_req[i].ifr_hwaddr);
+		copy((unsigned char *)(ifc.ifc_ifcu.ifcu_req[i].ifr_hwaddr.sa_data),
+			(unsigned char *)(ifc.ifc_ifcu.ifcu_req[i].ifr_hwaddr.sa_data) + 6,
+			mac.begin());
+
+		bool mac_found = false;
+		BOOST_FOREACH(GNetAdapter & n, ret)
+		{
+			if(n.getMac() == mac)
+			{
+				n.addAddress(boost::asio::ip::address_v4(ip), boost::asio::ip::address_v4(mask));
+				mac_found = true;
+				break;
+			}
+		}
+
+		if(mac_found == false)
+		{
+			string name(pCardName);
+			string::size_type pos;
+
+			if((pos = name.find_first_of(':')) != string::npos)
+				name = name.substr(0, pos);
+
+			GNetAdapter n(name);
+			n.addAddress(boost::asio::ip::address_v4(ip), boost::asio::ip::address_v4(mask));
+			n.setMac(mac);
+			ret.push_back(n);
+		}
+	}
+	
+	return ret;
 }
 #endif
 

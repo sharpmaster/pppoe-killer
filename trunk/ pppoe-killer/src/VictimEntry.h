@@ -15,8 +15,8 @@ class VictimEntry : boost::noncopyable
 public:
 	VictimEntry();
 		
-	void setMac(const boost::array<char, 6> & mac) {m_mac = mac;}
-	boost::array<char, 6> getMac() const {return m_mac;}
+	void setMac(const boost::array<unsigned char, 6> & mac) {m_mac = mac;}
+	boost::array<unsigned char, 6> getMac() const {return m_mac;}
 	void setInterfaceName(const std::string & name) {m_ifname = name;}
 	std::string getInterfaceName() const {return m_ifname;}
 	void setLastSeenDate(const std::string & date) {m_lastseen = date;}
@@ -33,7 +33,7 @@ public:
 	bool isKillerAlive() {if(m_killer)return m_killer->isAlive();else return false;}
 	bool isKillerExisted() {return !(m_killer.get() == 0);}
 private:
-	boost::array<char, 6> m_mac;
+	boost::array<unsigned char, 6> m_mac;
 	std::string m_ifname;
 	std::string m_lastseen;
 	bool m_autokill;

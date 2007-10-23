@@ -14,7 +14,7 @@ class PADTGenerator;
 class AutoKiller : public Killer
 {
 public:
-	AutoKiller(const boost::array<char, 6> & src, const boost::array<char, 6> & dst,
+	AutoKiller(const boost::array<unsigned char, 6> & src, const boost::array<unsigned char, 6> & dst,
 		const std::string & name, const unsigned int interval = 0);
 	~AutoKiller();
 	
