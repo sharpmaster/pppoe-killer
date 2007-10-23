@@ -2,7 +2,7 @@
 #include "PADTGenerator.h"
 #include "ManualKiller.h"
 
-ManualKiller::ManualKiller(const boost::array<char, 6> & src, const boost::array<char, 6> & dst,
+ManualKiller::ManualKiller(const boost::array<unsigned char, 6> & src, const boost::array<unsigned char, 6> & dst,
 		const std::string & name, const unsigned int interval)
 		: Killer(KILLER_ID, src, dst, name, interval)
 {

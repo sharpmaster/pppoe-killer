@@ -83,7 +83,7 @@ void MainFunction::refreshButton()
 	pc_list_selected();
 }
 
-string MainFunction::getMACString(const boost::array<char, 6> & mac)
+string MainFunction::getMACString(const boost::array<unsigned char, 6> & mac)
 {
 	stringstream ss;
 	string s = GNetTool::getMACString(mac);
@@ -95,7 +95,7 @@ string MainFunction::getMACString(const boost::array<char, 6> & mac)
 	return ss.str();
 }
 
-boost::array<char, 6> MainFunction::parseMAC(const std::string & macstr)
+boost::array<unsigned char, 6> MainFunction::parseMAC(const std::string & macstr)
 {
 	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 	boost::char_separator<char> sep(":");
@@ -105,7 +105,7 @@ boost::array<char, 6> MainFunction::parseMAC(const std::string & macstr)
 	for (tokenizer::iterator tok_iter = tokens.begin(); tok_iter != tokens.end(); ++tok_iter)
 	   	ss << *tok_iter;
 
-	boost::array<char, 6> ret;
+	boost::array<unsigned char, 6> ret;
 
 	try
 	{
@@ -132,7 +132,7 @@ void MainFunction::clear_data()
 	m_victims.clear();
 }
 
-void MainFunction::append_data(const boost::array<char, 6> & macbin, std::string & ifname)
+void MainFunction::append_data(const boost::array<unsigned char, 6> & macbin, std::string & ifname)
 {
 	VictimEntry *v = new VictimEntry();
 	string s;
@@ -172,7 +172,7 @@ void MainFunction::padi_detected(const unsigned char* packet, int len)
 void MainFunction::padi_srcmac_detected(const unsigned char* srcmac)
 {
 	string mac;
-	boost::array<char, 6> macbin;
+	boost::array<unsigned char, 6> macbin;
 	VITE ite;
 	boost::mutex::scoped_lock *lock;
 
@@ -207,7 +207,7 @@ void MainFunction::padi_srcmac_detected(const unsigned char* srcmac)
 
 void MainFunction::pado_detected(const unsigned char* packet, int len)
 {
-	boost::array<char, 6> macbin;
+	boost::array<unsigned char, 6> macbin;
 	
 	copy(packet+6, packet+6+6, macbin.begin());
 	string s = getMACString(macbin);
@@ -412,7 +412,6 @@ void MainFunction::pc_list_selected()
 	}
 	catch(const boost::lock_error & e)
 	{
-		delete lock;
 		return;
 	}
 	
@@ -576,7 +575,7 @@ void MainFunction::pc_entermac()
 	if(s.IsEmpty())
 		return;
 
-	boost::array<char, 6> mac;
+	boost::array<unsigned char, 6> mac;
 
 	try
 	{
@@ -607,7 +606,7 @@ void MainFunction::pc_enterispmac()
 	if(s.IsEmpty())
 		return;
 
-	boost::array<char, 6> mac;
+	boost::array<unsigned char, 6> mac;
 
 	try
 	{

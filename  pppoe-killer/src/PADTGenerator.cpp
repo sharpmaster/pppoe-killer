@@ -3,7 +3,7 @@
 
 using namespace glib;
 
-PADTGenerator::PADTGenerator(const std::string & name, const char *src, const char *dst,
+PADTGenerator::PADTGenerator(const std::string & name, const unsigned char *src, const unsigned char *dst,
 						unsigned int interval) : GPacketGenerator(name), m_interval(interval)
 {
 	memcpy(m_srcmac, src, 6);
