@@ -11,7 +11,7 @@ GPacketDetector::GPacketDetector(const std::string & expr, const string & name)
 
 	m_logger = GLogger::getLogger("packet");
 
-	if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL /* auth is not needed */, &alldevs, errbuf) == -1)
+	if (pcap_findalldevs(&alldevs, errbuf) == -1)
 	{
 		GERROR(*m_logger)("GPacketDetector pcap_findalldevs_ex=-1, %s", errbuf);
 		return;
@@ -76,7 +76,7 @@ void GPacketDetector::run()
 	if ((adhandle = pcap_open_live(s.c_str(),							// name of the device
 									 65536,								// portion of the packet to capture. 
 																		// 65536 grants that the whole packet will be captured on all the MACs.
-									 PCAP_OPENFLAG_PROMISCUOUS,         // promiscuous mode
+									 1,         // promiscuous mode
 									 1000,								// read timeout
 									 errbuf								// error buffer
 									 )) == NULL)

@@ -62,3 +62,4 @@ void AutoKiller::killthread()
 	padi_dtr->waitStop();
 	m_padt_gnr->waitStop();
 }
+

@@ -23,7 +23,7 @@ private:
 	void _init(const std::string & expr, const std::string & name);
 public:
 	GPacketDetector(const std::string & expr, const std::string & name);
-	virtual ~GPacketDetector();
+	~GPacketDetector();
 
 	void AddReactor(const boost::signal2<void, const unsigned char*, int>::slot_type& slot);
 	void run();
