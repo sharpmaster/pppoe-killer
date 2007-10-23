@@ -1,3 +1,6 @@
+#ifndef WIN32
+#include <arpa/inet.h>
+#endif
 #include <pcap.h>
 #include "GPacketDetector.h"
 

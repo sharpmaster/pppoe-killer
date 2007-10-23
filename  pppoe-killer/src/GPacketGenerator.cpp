@@ -13,7 +13,7 @@ GPacketGenerator::GPacketGenerator(const string & name)
 	m_libc = NULL;
 	m_logger = GLogger::getLogger("packet");
 
-	if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL /* auth is not needed */, &alldevs, errbuf) == -1)
+	if (pcap_findalldevs(&alldevs, errbuf) == -1)
 	{
 		GERROR(*m_logger)("GPacketGenerator pcap_findalldevs_ex=-1, %s", errbuf);
 		return;
