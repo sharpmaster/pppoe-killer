@@ -105,7 +105,7 @@ MainFrame::MainFrame()
 	func_menu->Append(PKID_EXIT, _T("結束(&X)"));
 	help_menu->Append(wxID_ABOUT, _T("關於(&A)"));
 	
-	menu_bar->Append(func_menu, _T("功能(&F)"));
+	menu_bar->Append(func_menu, _T("選項(&F)"));
 	menu_bar->Append(help_menu, _T("說明(&H)"));
 	
 	SetMenuBar(menu_bar);
