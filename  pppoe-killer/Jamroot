@@ -15,4 +15,20 @@ exe pkiller : [ glob src/*.cpp ]
 			<define>GLIB_STATIC
 			<user-interface>gui
 			;
+exe pkiller : [ glob src/*.cpp ]
+		lib/GLib//glib
+		/site-config//libnet
+		/site-config//pcap
+		/site-config//wx-gtk
+		: <use>/site-config//boost_1.34.1
+		<library>/site-config//boost_thread
+		<library>/site-config//boost_serialization
+		<library>/site-config//boost_signals
+		<link>static
+                <threading>multi
+                <variant>release
+		<toolset>gcc
+		<define>__WXGTK__
+		<define>GLIB_STATIC
+		;
 install dist : pkiller ;
