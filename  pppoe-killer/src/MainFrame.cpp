@@ -207,7 +207,11 @@ MainPanel::MainPanel(wxFrame *frame)
 	{
 		string *clientData = new string;
 		*clientData = adapters[i].getName();
+#ifdef WIN32
 		m_cards->Append(adapters[i].getDescription(), (void*)clientData);
+#else
+		m_cards->Append(adapters[i].getName(), (void*)clientData);
+#endif
 	}
 
 	if(adapters.size() > 0)
