@@ -7,12 +7,12 @@
 #include <boost/ptr_container/ptr_map.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
-#include <glib/GLogger.h>
+#include <boost/thread/mutex.hpp>
+#include <log4cxx/logger.h>
 
 class GPacketDetector;
 class AutoKiller;
 class VictimEntry;
-class boost::mutex;
 class wxGrid;
 class wxToggleButton;
 class wxStaticText;
@@ -56,7 +56,7 @@ private:
 
 	std::string m_func_ifname;
 
-	glib::GBaseLogger *m_logger;
+	log4cxx::LoggerPtr m_logger;
 
 	std::string getMACString(const boost::array<unsigned char, 6> & mac);
 	boost::array<unsigned char, 6> parseMAC(const std::string & macstr);

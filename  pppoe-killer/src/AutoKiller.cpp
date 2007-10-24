@@ -2,22 +2,19 @@
 #include "GPacketDetector.h"
 #include "PADTGenerator.h"
 #include <boost/bind.hpp>
+#include <boost/format.hpp>
 #include <boost/thread/mutex.hpp>
 
 using namespace std;
 using namespace glib;
+using namespace log4cxx;
 
 AutoKiller::AutoKiller(const boost::array<unsigned char, 6> & src, const boost::array<unsigned char, 6> & dst,
 		const std::string & name, const unsigned int interval)
 		: Killer(KILLER_ID, src, dst, name, interval)
 {
 	m_padt_gnr.reset(new PADTGenerator(name, dst.data(), src.data(), interval));
-	m_logger = GLogger::getLogger("autokiller");
-}
-
-AutoKiller::~AutoKiller()
-{
-	delete m_logger;
+	m_logger = Logger::getLogger("autokiller");
 }
 
 void AutoKiller::padi_detected(const unsigned char* packet, int len)
@@ -25,11 +22,14 @@ void AutoKiller::padi_detected(const unsigned char* packet, int len)
 	boost::array<unsigned char, 6> srcmac = getSrcMAC();
 	if(memcmp(packet+6, srcmac.data(), 6))
 	{
-		GDEBUG(*m_logger)("AutoKiller::padi_detected not me");
+		LOG4CXX_INFO(m_logger,
+			boost::format("PADI detected but ignored: %02X:%02X:%02X:%02X:%02X:%02X") %
+				*(packet+6) % *(packet+7) % *(packet+8) %
+				*(packet+9) % *(packet+10) % *(packet+11));
 		return;
 	}
 
-	GDEBUG(*m_logger)("AutoKiller::padi_detected");
+	LOG4CXX_INFO(m_logger, "PADI detected");
 
 	msig_detected((const unsigned char*)srcmac.data());
 
@@ -46,6 +46,7 @@ void AutoKiller::padi_detected(const unsigned char* packet, int len)
 
 void AutoKiller::killthread()
 {
+	LOG4CXX_DEBUG(m_logger, "thread started");
 	boost::scoped_ptr<GPacketDetector> padi_dtr(
 						new GPacketDetector("ether[0]=255 and ether proto 0x8863",
 								getCardName()));
@@ -61,5 +62,7 @@ void AutoKiller::killthread()
 
 	padi_dtr->waitStop();
 	m_padt_gnr->waitStop();
+
+	LOG4CXX_DEBUG(m_logger, "thread terminated");
 }
 

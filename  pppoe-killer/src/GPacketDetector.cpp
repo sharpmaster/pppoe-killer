@@ -6,17 +6,19 @@
 
 using namespace glib;
 using namespace std;
+using namespace log4cxx;
 
 GPacketDetector::GPacketDetector(const std::string & expr, const string & name)
+	: m_name(""), m_expression(expr), m_netmask("255.255.255.0")
 {
 	pcap_if_t *alldevs, *d;
 	char errbuf[PCAP_ERRBUF_SIZE];
 
-	m_logger = GLogger::getLogger("packet");
+	m_logger = Logger::getLogger("packet");
 
 	if (pcap_findalldevs(&alldevs, errbuf) == -1)
 	{
-		GERROR(*m_logger)("GPacketDetector pcap_findalldevs_ex=-1, %s", errbuf);
+		LOG4CXX_ERROR(m_logger, "get devices error, " +  string(errbuf));
 		return;
 	}
 
@@ -29,25 +31,13 @@ GPacketDetector::GPacketDetector(const std::string & expr, const string & name)
 
 	if(d == NULL)
 	{
-		GERROR(*m_logger)("GPacketDetector adapter %s not found", name.c_str());
+		LOG4CXX_ERROR(m_logger, "adapter " + name + " not found");
+		pcap_freealldevs(alldevs);
 		return;
 	}
 
-	_init(expr, d->name);
+	m_name = d->name;
 	pcap_freealldevs(alldevs);
-}
-
-GPacketDetector::~GPacketDetector()
-{
-	if(m_logger != NULL)
-		delete m_logger;
-}
-
-void GPacketDetector::_init(const string & expr, const string & name)
-{
-	m_name = name;
-	m_expression = expr;
-	m_netmask = "255.255.255.0";
 }
 
 void GPacketDetector::AddReactor(const boost::signal2<void, const unsigned char *, int >::slot_type & slot)
@@ -57,8 +47,9 @@ void GPacketDetector::AddReactor(const boost::signal2<void, const unsigned char 
 
 void GPacketDetector::run()
 {
-	if(m_name == "" || m_expression == "")
+	if(m_name == "")
 	{
+		LOG4CXX_ERROR(m_logger, "packet detector not initialized"); 
 		return;
 	}
 
@@ -75,7 +66,6 @@ void GPacketDetector::run()
 	if((n = s.find("://")) != string::npos)
 		s = s.substr(n+3);
 
-	//m_logger->error("%s", s.c_str());
 	if ((adhandle = pcap_open_live(s.c_str(),							// name of the device
 									 65536,								// portion of the packet to capture. 
 																		// 65536 grants that the whole packet will be captured on all the MACs.
@@ -84,30 +74,30 @@ void GPacketDetector::run()
 									 errbuf								// error buffer
 									 )) == NULL)
 	{
-		GERROR(*m_logger)("Unable to open the adapter. %s is not supported by WinPcap\n", s.c_str());
+		LOG4CXX_ERROR(m_logger, "Unable to open the adapter. " + s + " is not supported by WinPcap");
 		return;
 	}
 	
 	//compile the filter
-	if(pcap_compile(adhandle, &fcode, (char*)m_expression.c_str(), 1, inet_addr(m_netmask.c_str())) <0 ) {
-		GERROR(*m_logger)("Unable to compile the packet filter. Check the syntax.");
+	if(pcap_compile(adhandle, &fcode, (char*)m_expression.c_str(), 1, inet_addr(m_netmask.c_str())) <0 )
+	{
+		LOG4CXX_ERROR(m_logger, "Unable to compile the packet filter. Check the syntax: " + m_expression);
 		pcap_close(adhandle);
 		return;
 	}
 
 	//set the filter
-	if(pcap_setfilter(adhandle, &fcode) < 0) {
-		GERROR(*m_logger)("Error setting the filter.");
+	if(pcap_setfilter(adhandle, &fcode) < 0)
+	{
+		LOG4CXX_ERROR(m_logger, "Error setting the filter");
 		pcap_close(adhandle);
 		return;
 	}
 
 	while(this->IsStopping() == false &&
-			(res = pcap_next_ex( adhandle, &pkt_header, (const u_char**)&pkt_data)) >= 0) {
+			(res = pcap_next_ex( adhandle, &pkt_header, (const u_char**)&pkt_data)) >= 0)
+	{
 		if(res == 0) continue;
-
-		//m_logger->info("packet detected, len: %d", pkt_header->len);
-		GINFO(*m_logger)("packet detected, len: %d", pkt_header->len);
 		msig_detected((const unsigned char*)pkt_data, pkt_header->len);
 	}
 

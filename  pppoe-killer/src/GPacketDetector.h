@@ -4,10 +4,18 @@
 #include <string>
 #include <boost/signal.hpp>
 #include <boost/signals/slot.hpp>
+#include <log4cxx/logger.h>
 #include <glib/GThread.h>
 #include <glib/GLogger.h>
 
 class GPacketDetector : public glib::GThread {
+public:
+	GPacketDetector(const std::string & expr, const std::string & name);
+	~GPacketDetector() {}
+
+	bool isInitialized() {return !(m_name == "");}
+	void AddReactor(const boost::signal2<void, const unsigned char*, int>::slot_type& slot);
+	void run();
 private:
 	std::string m_name;
 	std::string m_expression;
@@ -18,15 +26,7 @@ private:
 	std::string m_netmask;
 
 	boost::signal2<void, const unsigned char*, int> msig_detected;
-	glib::GBaseLogger *m_logger;
-
-	void _init(const std::string & expr, const std::string & name);
-public:
-	GPacketDetector(const std::string & expr, const std::string & name);
-	~GPacketDetector();
-
-	void AddReactor(const boost::signal2<void, const unsigned char*, int>::slot_type& slot);
-	void run();
+	log4cxx::LoggerPtr m_logger;
 };
 
 #endif

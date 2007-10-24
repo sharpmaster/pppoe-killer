@@ -10,10 +10,12 @@
 #include <wx/aboutdlg.h>
 #include "pppoe.xpm"
 #include "Resource.h"
-#include <glib/GLogger.h>
 #include <glib/GProperties.h>
 #include <glib/GThread.h>
 #include <glib/net/GNetTool.h>
+#include <log4cxx/logger.h>
+#include <log4cxx/propertyconfigurator.h>
+#include <log4cxx/helpers/exception.h>
 #include "MainFrame.h"
 #include "MainFunction.h"
 #include "PreferenceDialog.h"
@@ -21,6 +23,7 @@
 using namespace glib;
 using namespace glib::net;
 using namespace std;
+using namespace log4cxx;
 
 IMPLEMENT_APP(MainApp)
 
@@ -35,25 +38,16 @@ bool MainApp::OnInit() {
 		return false;
 	}
 #endif
-	GProperties prop;
-	
-	prop.set("loggers", "main,packet,autokiller");
-	prop.set("root.logger", "console");
-	prop.set("root.level", "warn");
-	prop.set("main.logger", "file");
-	prop.set("main.level", "warn");
-	prop.set("main.logger.filename", "pppoe_killer.log");
-	prop.set("main.logger.filesize", "5000");
-	prop.set("packet.logger", "file");
-	prop.set("packet.level", "warn");
-	prop.set("packet.logger.filename", "pppoe_killer.log");
-	prop.set("packet.logger.filesize", "5000");
-	prop.set("autokiller.logger", "file");
-	prop.set("autokiller.level", "warn");
-	prop.set("autokiller.logger.filename", "pppoe_killer.log");
-	prop.set("autokiller.logger.filesize", "5000");
-	GLogger::configure(prop);
 
+	try
+	{
+		PropertyConfigurator::configure(File("log4cxx.conf"));
+	}
+	catch(...)
+	{
+		// do something
+	}
+	
 	wxIcon icon(pppoe_xpm);
 	// Create the main frame window
 	MainFrame *frame = new MainFrame;

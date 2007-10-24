@@ -16,7 +16,7 @@ class AutoKiller : public Killer
 public:
 	AutoKiller(const boost::array<unsigned char, 6> & src, const boost::array<unsigned char, 6> & dst,
 		const std::string & name, const unsigned int interval = 0);
-	~AutoKiller();
+	~AutoKiller() {}
 	
 	static const int KILLER_ID = 0x1;
 	
@@ -28,7 +28,7 @@ protected:
 private:
 	boost::mutex m_padi_mutex;
 	boost::scoped_ptr<PADTGenerator> m_padt_gnr;
-	glib::GBaseLogger *m_logger;
+	log4cxx::LoggerPtr m_logger;
 	boost::signal1<void, const unsigned char*> msig_detected;
 
 	void padi_detected(const unsigned char* packet, int len);

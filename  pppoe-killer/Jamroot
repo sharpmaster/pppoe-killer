@@ -3,6 +3,7 @@ exe pkiller : [ glob src/*.cpp ]
 			/site-config//libnet
 			/site-config//wpcap
 			/site-config//wxwidgets
+			/site-config//log4cxx
 			: <use>/site-config//boost_1.34.1
 			<find-static-library>iphlpapi
 			<runtime-link>static
@@ -13,6 +14,7 @@ exe pkiller : [ glob src/*.cpp ]
 			<define>WIN32
 			<define>HAVE_REMOTE
 			<define>GLIB_STATIC
+			<define>LOG4CXX_STATIC
 			<user-interface>gui
 			;
 exe pkiller : [ glob src/*.cpp ]
@@ -20,6 +22,7 @@ exe pkiller : [ glob src/*.cpp ]
 		/site-config//libnet
 		/site-config//pcap
 		/site-config//wx-gtk
+		/site-config//log4cxx
 		: <use>/site-config//boost_1.34.1
 		<library>/site-config//boost_thread
 		<library>/site-config//boost_serialization
@@ -30,5 +33,6 @@ exe pkiller : [ glob src/*.cpp ]
 		<toolset>gcc
 		<define>__WXGTK__
 		<define>GLIB_STATIC
+		<define>LOG4CXX_STATIC
 		;
 install dist : pkiller ;
