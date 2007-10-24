@@ -11,7 +11,7 @@ private:
 	unsigned char m_dstmac[6];
 	unsigned int m_interval;
 
-	glib::GBaseLogger *m_logger;
+	log4cxx::LoggerPtr m_logger;
 public:
 	PADTGenerator(const std::string & name, const unsigned char* src, const unsigned char* dst,
 		unsigned int interval = 0);

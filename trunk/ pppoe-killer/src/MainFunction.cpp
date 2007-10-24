@@ -26,6 +26,7 @@
 using namespace std;
 using namespace glib;
 using namespace glib::net;
+using namespace log4cxx;
 
 MainFunction::MainFunction(wxComboBox* cards, wxListBox *list, wxStaticText *ispmac,
 						   wxToggleButton *autokill_btn, wxButton *kill_btn)
@@ -49,7 +50,7 @@ MainFunction::MainFunction(wxComboBox* cards, wxListBox *list, wxStaticText *isp
 		m_func_ifname = *((string*)(m_cards->GetClientData(index)));
 	
 
-	m_logger = GLogger::getLogger("main");
+	m_logger = Logger::getLogger("main");
 }
 
 MainFunction::~MainFunction()
@@ -75,7 +76,6 @@ MainFunction::~MainFunction()
 	}
 
 	clear_data();
-	delete m_logger;
 }
 
 void MainFunction::refreshButton()
@@ -191,7 +191,6 @@ void MainFunction::padi_srcmac_detected(const unsigned char* srcmac)
 		ite->second->setLastSeenDate(GTime::GetTimeString());
 		wxString macstr = getMACString(ite->second->getMac());
 		
-		GDEBUG(*m_logger)("Refreshing time %s", macstr.c_str());
 		for(unsigned int i = 0; i < m_maclist->GetCount(); i++)
 		{
 			if(m_maclist->GetString(i).find(macstr) != string::npos)

@@ -1,13 +1,13 @@
 #ifndef _PACKETGENERATOR_H
 #define _PACKETGENERATOR_H
 
-#include <glib/GLogger.h>
+#include <log4cxx/logger.h>
 #include <string>
 
 class GPacketGenerator
 {
 private:
-	glib::GBaseLogger *m_logger;
+	log4cxx::LoggerPtr m_logger;
 	void _initdevice(const std::string & name);
 protected:
 	std::string m_name;

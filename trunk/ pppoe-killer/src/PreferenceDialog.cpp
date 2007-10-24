@@ -76,3 +76,4 @@ void PacketPanel::setInterval(unsigned int value)
 {
 	m_interval->SetValue((int)value);
 }
+
