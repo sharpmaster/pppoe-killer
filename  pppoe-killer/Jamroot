@@ -17,7 +17,7 @@ exe pkiller : [ glob src/*.cpp ]
 			<define>GLIB_STATIC
 			<define>LOG4CXX_STATIC
 			;
-exe pkiller_linux : [ glob src/*.cpp ]
+exe pkiller.linux : [ glob src/*.cpp ]
 		lib/GLib//glib
 		/site-config//libnet
 		/site-config//pcap
@@ -36,4 +36,4 @@ exe pkiller_linux : [ glob src/*.cpp ]
 		<define>LOG4CXX_STATIC
 		;
 install win32 : pkiller ;
-install linux : pkiller_linux ;
+install linux : pkiller.linux ;
