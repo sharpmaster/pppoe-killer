@@ -36,6 +36,7 @@ public:
 private:
 	GPacketDetector *m_padi_dtr;
 	GPacketDetector *m_pado_dtr;
+	GPacketDetector *m_arpreq_dtr;
 
 	wxComboBox *m_cards;
 	wxListBox *m_maclist;
@@ -61,14 +62,15 @@ private:
 	std::string getMACString(const boost::array<unsigned char, 6> & mac);
 	boost::array<unsigned char, 6> parseMAC(const std::string & macstr);
 	void clear_data();
-	void append_data(const boost::array<unsigned char, 6> & macbin, std::string & ifname);
-	//VITE get_iterator(const std::string & macstr);
+	void append_data(const boost::array<unsigned char, 6> & macbin, const std::string & ifname,
+				const std::string & desc = "");
 	std::string getliststr(const VictimEntry & entry);
 
 	//void load_old_savefile();
 
 	void padi_detected(const unsigned char* packet, int len);
 	void pado_detected(const unsigned char* packet, int len);
+	void arpreq_detected(const unsigned char* packet, int len);
 	void padi_srcmac_detected(const unsigned char* srcmac);
 
 	void pc_padi_detect(wxToggleButton *btn);

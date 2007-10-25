@@ -60,7 +60,7 @@ void AutoKiller::killthread()
 	LOG4CXX_DEBUG(m_logger, "thread started");
 	boost::scoped_ptr<GPacketDetector> padi_dtr(
 						new GPacketDetector("ether[0]=255 and ether proto 0x8863",
-								getCardName()));
+						getCardName()));
 	padi_dtr->AddReactor(boost::bind(&AutoKiller::padi_detected, this, _1, _2));
 	padi_dtr->start();
 
