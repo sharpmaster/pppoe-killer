@@ -2,6 +2,7 @@
 #include <arpa/inet.h>
 #endif
 #include <pcap.h>
+#include <log4cxx/mdc.h>
 #include "GPacketDetector.h"
 
 using namespace glib;
@@ -15,6 +16,8 @@ GPacketDetector::GPacketDetector(const std::string & expr, const string & name)
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	m_logger = Logger::getLogger("packet");
+	MDC::put("devname", name);
+	MDC::put("expr", m_expression);
 
 	if (pcap_findalldevs(&alldevs, errbuf) == -1)
 	{
@@ -40,6 +43,12 @@ GPacketDetector::GPacketDetector(const std::string & expr, const string & name)
 	pcap_freealldevs(alldevs);
 }
 
+GPacketDetector::~GPacketDetector()
+{
+	MDC::remove("devname");
+	MDC::remove("expr");
+}
+
 void GPacketDetector::AddReactor(const boost::signal2<void, const unsigned char *, int >::slot_type & slot)
 {
 	msig_detected.connect(slot);
@@ -52,6 +61,8 @@ void GPacketDetector::run()
 		LOG4CXX_ERROR(m_logger, "packet detector not initialized"); 
 		return;
 	}
+
+	LOG4CXX_DEBUG(m_logger, "detector starts");
 
 	pcap_t *adhandle = NULL;
 	char errbuf[PCAP_ERRBUF_SIZE];
@@ -101,6 +112,7 @@ void GPacketDetector::run()
 		msig_detected((const unsigned char*)pkt_data, pkt_header->len);
 	}
 
+	LOG4CXX_DEBUG(m_logger, "detector ends");
 	pcap_close(adhandle);
 }
 
