@@ -92,6 +92,14 @@ void GPacketDetector::run()
 		return;
 	}
 
+	// set to nonblocking mode
+	if(pcap_setnonblock(adhandle, 1, errbuf) < 0)
+	{
+		LOG4CXX_ERROR(m_logger, "Unable to set nonblocking mdoe");
+		pcap_close(adhandle);
+		return;
+	}
+
 	//set the filter
 	if(pcap_setfilter(adhandle, &fcode) < 0)
 	{
@@ -103,7 +111,11 @@ void GPacketDetector::run()
 	while(this->IsStopping() == false &&
 			(res = pcap_next_ex( adhandle, &pkt_header, (const u_char**)&pkt_data)) >= 0)
 	{
-		if(res == 0) continue;
+		if(res == 0)
+		{
+			GThread::sleep(100);
+			continue;
+		}
 		msig_detected((const unsigned char*)pkt_data, pkt_header->len);
 	}
 

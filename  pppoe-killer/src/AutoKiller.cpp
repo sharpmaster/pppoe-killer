@@ -46,6 +46,17 @@ void AutoKiller::padi_detected(const unsigned char* packet, int len)
 
 void AutoKiller::killthread()
 {
+	char buf[32];
+	boost::array<unsigned char, 6> mac;
+	mac = getSrcMAC();
+	sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
+		mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	log4cxx::MDC::put("srcmac", std::string(buf));
+	mac = getDstMAC();
+	sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
+		mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	log4cxx::MDC::put("dstmac", std::string(buf));
+	
 	LOG4CXX_DEBUG(m_logger, "thread started");
 	boost::scoped_ptr<GPacketDetector> padi_dtr(
 						new GPacketDetector("ether[0]=255 and ether proto 0x8863",
