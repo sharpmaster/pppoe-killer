@@ -13,7 +13,6 @@ GPacketGenerator::GPacketGenerator(const string & name)
 
 	m_libc = NULL;
 	m_logger = Logger::getLogger("packet");
-	MDC::put("devname", name);
 
 	if (pcap_findalldevs(&alldevs, errbuf) == -1)
 	{
@@ -40,7 +39,6 @@ GPacketGenerator::GPacketGenerator(const string & name)
 
 GPacketGenerator::~GPacketGenerator()
 {
-	MDC::remove("devname");
 	if(m_libc != NULL)
 		libnet_destroy((libnet_t*)m_libc);
 }

@@ -13,21 +13,6 @@ PADTGenerator::PADTGenerator(const std::string & name, const unsigned char *src,
 	memcpy(m_dstmac, dst, 6);
 
 	m_logger = Logger::getLogger("packet");
-
-	char buf[32];
-
-	sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
-		*m_srcmac, *(m_srcmac+1), *(m_srcmac+2), *(m_srcmac+3), *(m_srcmac+4), *(m_srcmac+5));
-	MDC::put("srcmac", string(buf));
-	sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
-		*m_dstmac, *(m_dstmac+1), *(m_dstmac+2), *(m_dstmac+3), *(m_dstmac+4), *(m_dstmac+5));
-	MDC::put("dstmac", string(buf));
-}
-
-PADTGenerator::~PADTGenerator()
-{
-	MDC::remove("srcmac");
-	MDC::remove("dstmac");
 }
 
 void PADTGenerator::run()
@@ -36,6 +21,14 @@ void PADTGenerator::run()
 	unsigned char payload[6];
 	libnet_ptag_t ethernet = 0;
 	int ret;
+
+	char buf[32];
+	sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
+		*m_srcmac, *(m_srcmac+1), *(m_srcmac+2), *(m_srcmac+3), *(m_srcmac+4), *(m_srcmac+5));
+	MDC::put("srcmac", string(buf));
+	sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
+		*m_dstmac, *(m_dstmac+1), *(m_dstmac+2), *(m_dstmac+3), *(m_dstmac+4), *(m_dstmac+5));
+	MDC::put("dstmac", string(buf));
 
 	if(m_libc == NULL)
 	{
