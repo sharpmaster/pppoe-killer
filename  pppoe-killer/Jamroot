@@ -6,8 +6,9 @@ exe pkiller : [ glob src/*.cpp ]
 			/site-config//log4cxx
 			: <use>/site-config//boost_1.34.1
 			<find-static-library>iphlpapi
-			<runtime-link>static
 			<link>static
+			<runtime-link>static
+			<user-interface>gui
 			<threading>multi
 			<variant>release
 			<toolset>msvc
@@ -15,9 +16,8 @@ exe pkiller : [ glob src/*.cpp ]
 			<define>HAVE_REMOTE
 			<define>GLIB_STATIC
 			<define>LOG4CXX_STATIC
-			<user-interface>gui
 			;
-exe pkiller : [ glob src/*.cpp ]
+exe pkiller_linux : [ glob src/*.cpp ]
 		lib/GLib//glib
 		/site-config//libnet
 		/site-config//pcap
@@ -28,11 +28,12 @@ exe pkiller : [ glob src/*.cpp ]
 		<library>/site-config//boost_serialization
 		<library>/site-config//boost_signals
 		<link>static
-                <threading>multi
-                <variant>release
+              <threading>multi
+              <variant>release
 		<toolset>gcc
 		<define>__WXGTK__
 		<define>GLIB_STATIC
 		<define>LOG4CXX_STATIC
 		;
-install dist : pkiller ;
+install win32 : pkiller ;
+install linux : pkiller_linux ;

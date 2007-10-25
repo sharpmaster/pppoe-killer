@@ -47,7 +47,7 @@ bool MainApp::OnInit() {
 	{
 		// do something
 	}
-	
+
 	wxIcon icon(pppoe_xpm);
 	// Create the main frame window
 	MainFrame *frame = new MainFrame;
@@ -216,7 +216,8 @@ MainPanel::MainPanel(wxFrame *frame)
 	cards_sizer->Add(m_cards, 1, wxEXPAND | wxALL, 10);
 	cards_sizer->Add(m_detect, 0, wxEXPAND | wxALL, 10);
 
-	m_maclist = new wxListBox(this, PKID_MACLIST);
+	m_maclist = new wxListBox(this, PKID_MACLIST, wxDefaultPosition, wxDefaultSize, 0, NULL,
+							wxLB_SINGLE | wxLB_HSCROLL |wxLB_NEEDED_SB);
 
 	m_kill = new wxButton(this, PKID_KILL, "±þ±¼");
 	m_autokill = new wxToggleButton(this, PKID_AUTOKILL, "¦Û°Ê±þ±¼");

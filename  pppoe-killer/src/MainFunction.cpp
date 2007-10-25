@@ -8,6 +8,7 @@
 #include <boost/bind.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/algorithm/string/find.hpp>
 #include <wx/tglbtn.h>
 #include <wx/grid.h>
 #include <glib/GProperties.h>
@@ -27,6 +28,7 @@ using namespace std;
 using namespace glib;
 using namespace glib::net;
 using namespace log4cxx;
+namespace ba = boost::algorithm;
 
 MainFunction::MainFunction(wxComboBox* cards, wxListBox *list, wxStaticText *ispmac,
 						   wxToggleButton *autokill_btn, wxButton *kill_btn)
@@ -58,9 +60,7 @@ MainFunction::~MainFunction()
 	if(m_padi_dtr != NULL)
 	{
 		if(m_padi_dtr->isAlive() == true)
-			m_padi_dtr->stop();
-		while(m_padi_dtr->isAlive() == true)
-			GThread::sleep(10);
+			m_padi_dtr->waitStop();
 		delete m_padi_dtr;
 		m_padi_dtr = NULL;
 	}
@@ -68,11 +68,17 @@ MainFunction::~MainFunction()
 	if(m_pado_dtr != NULL)
 	{
 		if(m_pado_dtr->isAlive() == true)
-			m_pado_dtr->stop();
-		while(m_pado_dtr->isAlive() == true)
-			GThread::sleep(10);
+			m_pado_dtr->waitStop();
 		delete m_pado_dtr;
 		m_pado_dtr = NULL;
+	}
+
+	if(m_arpreq_dtr != NULL)
+	{
+		if(m_arpreq_dtr->isAlive() == true)
+			m_arpreq_dtr->waitStop();
+		delete m_arpreq_dtr;
+		m_arpreq_dtr = NULL;
 	}
 
 	clear_data();
@@ -132,7 +138,8 @@ void MainFunction::clear_data()
 	m_victims.clear();
 }
 
-void MainFunction::append_data(const boost::array<unsigned char, 6> & macbin, std::string & ifname)
+void MainFunction::append_data(const boost::array<unsigned char, 6> & macbin, const string & ifname,
+								const string & desc)
 {
 	VictimEntry *v = new VictimEntry();
 	string s;
@@ -141,6 +148,7 @@ void MainFunction::append_data(const boost::array<unsigned char, 6> & macbin, st
 	s = getMACString(macbin);
 	v->setInterfaceName(ifname);
 	v->setLastSeenDate(GTime::GetTimeString());
+	v->setDesc(desc);
 	v->setAutoKill(false);
 
 	m_victims.insert(s, v);
@@ -214,6 +222,53 @@ void MainFunction::pado_detected(const unsigned char* packet, int len)
 	m_dstmac = macbin;
 }
 
+void MainFunction::arpreq_detected(const unsigned char* packet, int len)
+{
+	boost::array<unsigned char, 6> macbin;
+	unsigned long srcip;
+	struct in_addr ip_addr;
+	string mac, ipstr;
+	VITE ite;
+	
+	copy(packet+6, packet+6+6, macbin.begin());
+	mac = getMACString(macbin);
+	memcpy(&srcip, packet+28, 4);
+	//srcip = ntohs(srcip);
+	ip_addr.s_addr = srcip;
+	ipstr = inet_ntoa(ip_addr);
+
+	boost::mutex::scoped_lock lock(m_mutex);
+
+	ite = m_victims.find(mac);
+	if(ite == m_victims.end())
+	{
+		append_data(macbin, m_func_ifname, ipstr);
+		m_maclist->Append(this->getliststr(m_victims[mac]));
+	}
+	else
+	{
+		ite->second->setLastSeenDate(GTime::GetTimeString());
+		string desc = ite->second->getDesc();
+		if(!(ba::find_first(desc, ipstr)))
+		{
+			desc += (" " + ipstr);
+			ite->second->setDesc(desc);
+		}
+			
+		wxString macstr = getMACString(ite->second->getMac());
+		
+		for(unsigned int i = 0; i < m_maclist->GetCount(); i++)
+		{
+			if(m_maclist->GetString(i).find(macstr) != string::npos)
+			{
+				m_maclist->SetString(i, this->getliststr(*ite->second));
+				break;
+			}
+		}
+	}
+	
+}
+
 void MainFunction::pc_padi_detect(wxToggleButton *btn)
 {
 	if(btn->GetValue() == true)
@@ -235,9 +290,11 @@ void MainFunction::pc_padi_detect(wxToggleButton *btn)
 		m_padi_dtr->AddReactor(boost::bind(&MainFunction::padi_detected, this, _1, _2));
 		m_pado_dtr = new GPacketDetector("ether[15]=7 and ether proto 0x8863", *ifname);
 		m_pado_dtr->AddReactor(boost::bind(&MainFunction::pado_detected, this, _1, _2));
+		m_arpreq_dtr = new GPacketDetector("arp and ether[20:2]=0x1", *ifname);
+		m_arpreq_dtr->AddReactor(boost::bind(&MainFunction::arpreq_detected, this, _1, _2));
 		m_padi_dtr->start();
-		GThread::sleep(100);
 		m_pado_dtr->start();
+		m_arpreq_dtr->start();
 
 		m_func_ifname = *ifname;
 		btn->SetLabel(wxT("°»´ú¤¤"));
@@ -252,6 +309,10 @@ void MainFunction::pc_padi_detect(wxToggleButton *btn)
 		m_pado_dtr->waitStop();
 		delete m_pado_dtr;
 		m_pado_dtr = NULL;
+
+		m_arpreq_dtr->waitStop();
+		delete m_arpreq_dtr;
+		m_arpreq_dtr = NULL;
 
 		m_func_ifname = "";
 		btn->SetLabel(wxT("°»´ú"));
