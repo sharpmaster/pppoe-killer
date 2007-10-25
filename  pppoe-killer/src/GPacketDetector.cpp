@@ -16,8 +16,6 @@ GPacketDetector::GPacketDetector(const std::string & expr, const string & name)
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	m_logger = Logger::getLogger("packet");
-	MDC::put("devname", name);
-	MDC::put("expr", m_expression);
 
 	if (pcap_findalldevs(&alldevs, errbuf) == -1)
 	{
@@ -43,12 +41,6 @@ GPacketDetector::GPacketDetector(const std::string & expr, const string & name)
 	pcap_freealldevs(alldevs);
 }
 
-GPacketDetector::~GPacketDetector()
-{
-	MDC::remove("devname");
-	MDC::remove("expr");
-}
-
 void GPacketDetector::AddReactor(const boost::signal2<void, const unsigned char *, int >::slot_type & slot)
 {
 	msig_detected.connect(slot);
@@ -61,6 +53,9 @@ void GPacketDetector::run()
 		LOG4CXX_ERROR(m_logger, "packet detector not initialized"); 
 		return;
 	}
+
+	MDC::put("devname", m_name);
+	MDC::put("expr", m_expression);
 
 	LOG4CXX_DEBUG(m_logger, "detector starts");
 
