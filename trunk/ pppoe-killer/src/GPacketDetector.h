@@ -11,7 +11,7 @@
 class GPacketDetector : public glib::GThread {
 public:
 	GPacketDetector(const std::string & expr, const std::string & name);
-	~GPacketDetector();
+	~GPacketDetector() {}
 
 	bool isInitialized() {return !(m_name == "");}
 	void AddReactor(const boost::signal2<void, const unsigned char*, int>::slot_type& slot);
