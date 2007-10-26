@@ -722,3 +722,4 @@ bool MainFunction::ProcessEvent(wxEvent& e)
 	e.Skip();
 	return false;
 }
+
