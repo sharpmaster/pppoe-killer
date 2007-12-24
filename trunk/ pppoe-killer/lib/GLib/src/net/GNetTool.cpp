@@ -224,7 +224,14 @@ boost::asio::ip::tcp::endpoint GNetTool::ResolveTcpEndpoint(const std::string & 
 	tcp::resolver::iterator ite;
 	tcp::resolver::iterator end;
 
-	ite = resolver.resolve(query, boost::asio::throw_error());
+	try
+	{
+		ite = resolver.resolve(query);
+	}
+	catch(...)
+	{
+		throw;
+	}
 	if(ite == end)
 		return tcp::endpoint();
 

@@ -49,9 +49,9 @@ int GHttpMethod::Execute()
 	{
 		connect();
 	}
-	catch(boost::asio::error & e)
+	catch(boost::system::error_code & e)
 	{
-		GERROR(*m_logger)("Connect error: %s", e.what());
+		GERROR(*m_logger)("Connect error: %s", e.message().c_str());
 		return ERROR_CONNECT;
 	}
 
@@ -111,11 +111,11 @@ void GHttpMethod::connect()
 	tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 	tcp::resolver::iterator end;
 
-	boost::asio::error error = boost::asio::error::host_not_found;
+	boost::system::error_code error = boost::asio::error::host_not_found;
 	while (error && endpoint_iterator != end)
 	{
 		m_socket->close();
-		m_socket->connect(*endpoint_iterator++, boost::asio::assign_error(error));
+		m_socket->connect(*endpoint_iterator++, error);
 	}
 	
 	if (error)
@@ -210,10 +210,10 @@ boost::shared_ptr<char> GHttpMethod::getResponseBody(size_t & size)
 			memcpy(&buf[now_size], buffer.data(), n);
 			now_size += n;
 		}
-		catch (boost::asio::error & e)
+		catch (boost::system::error_code & e)
 		{
 			if(e != boost::asio::error::eof)
-				GERROR(*m_logger)("Get response error: %s", e.what());
+				GERROR(*m_logger)("Get response error: %s", e.message().c_str());
 			break;
 		}
 	}
