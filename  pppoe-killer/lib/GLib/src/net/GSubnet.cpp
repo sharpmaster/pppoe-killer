@@ -66,27 +66,27 @@ GSubnet GSubnet::parseSubnet(const string & str)
 
 	if(regex_match(str.c_str(), what, EXPR_SINGLE))
 	{
-		boost::asio::error e;
-		address_v4 ip = address_v4::from_string(str, boost::asio::assign_error(e));
+		boost::system::error_code e;
+		address_v4 ip = address_v4::from_string(str, e);
 		if(e)
-			throw invalid_argument(e.what());
+			throw invalid_argument(e.message());
 		address_v4 mask = address_v4::from_string("255.255.255.255");
 		return GSubnet(ip, mask);
 	}
 	else if(regex_match(str.c_str(), what, EXPR_SUBNET))
 	{
 		string netidstr, maskstr;
-		boost::asio::error e;
+		boost::system::error_code e;
 		
 		netidstr.assign(what[1].first, what[1].second);
 		maskstr.assign(what[2].first, what[2].second);
 
-		address_v4 netid = address_v4::from_string(netidstr, boost::asio::assign_error(e));
+		address_v4 netid = address_v4::from_string(netidstr, e);
 		if(e)
-			throw invalid_argument(e.what());
-		address_v4 mask = address_v4::from_string(maskstr, boost::asio::assign_error(e));
+			throw invalid_argument(e.message());
+		address_v4 mask = address_v4::from_string(maskstr, e);
 		if(e)
-			throw invalid_argument(e.what());
+			throw invalid_argument(e.message());
 
 		GSubnet net;
 		try
@@ -103,14 +103,14 @@ GSubnet GSubnet::parseSubnet(const string & str)
 	else if(regex_match(str.c_str(), what, EXPR_SIMPLESUBNET))
 	{
 		string netidstr, maskstr;
-		boost::asio::error e;
+		boost::system::error_code e;
 
 		netidstr.assign(what[1].first, what[1].second);
 		maskstr.assign(what[2].first, what[2].second);
 
-		address_v4 netid = address_v4::from_string(netidstr, boost::asio::assign_error(e));
+		address_v4 netid = address_v4::from_string(netidstr, e);
 		if(e)
-			throw invalid_argument(e.what());
+			throw invalid_argument(e.message());
 		unsigned int maskbit;
 		try
 		{

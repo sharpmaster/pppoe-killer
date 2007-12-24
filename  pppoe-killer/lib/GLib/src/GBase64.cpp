@@ -37,16 +37,16 @@ string GBase64::Decode(const string & src)
 
 	if(src.size() == 0)
 		return "";
-
+	
 	bsize = b64_decode(NULL, src.size(), NULL, 0);
 	bdata = new char[bsize];
-	
-	if(b64_decode(src.data(), src.size(), bdata, bsize) == 0)
+
+	if((bsize = b64_decode(src.data(), src.size(), bdata, bsize)) == 0)
 	{
 		delete bdata;
 		throw bad_alloc();
 	}
-	
+
 	ret.assign(bdata, bsize);
 	delete bdata;
 	return ret;
