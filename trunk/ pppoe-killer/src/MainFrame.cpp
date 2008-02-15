@@ -34,7 +34,7 @@ bool MainApp::OnInit() {
                            GetLastError() == ERROR_ACCESS_DENIED);
 	if(AlreadyRunning == true)
 	{
-		::wxMessageBox(wxT("PPPoE Killer正在執行中"), wxT("Error"), wxOK | wxICON_ERROR);
+		::wxMessageBox(wxT("PPPoE Killer is running"), wxT("Error"), wxOK | wxICON_ERROR);
 		return false;
 	}
 #endif
@@ -74,7 +74,7 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 END_EVENT_TABLE()
 
 MainFrame::MainFrame()
-       : wxFrame(NULL, PKID_MAINFRAME, _T("PPPoE Killer v1.1"),
+       : wxFrame(NULL, PKID_MAINFRAME, _T("PPPoE Killer v1.2"),
                  wxDefaultPosition, wxDefaultSize,
                  wxDEFAULT_FRAME_STYLE & ~ (wxRESIZE_BORDER | wxRESIZE_BORDER | wxMAXIMIZE_BOX))
 {
@@ -88,19 +88,19 @@ MainFrame::MainFrame()
 	//m_tray->SetEvtHandlerEnabled(false);
 	m_tray->SetNextHandler(this);
 
-	entermac_menu->Append(PKID_ENTERMAC, _T("目標電腦(&T)"));
+	entermac_menu->Append(PKID_ENTERMAC, _T("Target(&T)"));
 	entermac_menu->Append(PKID_ENTERISPMAC, _T("ISP(&I)"));
 
-	func_menu->AppendSubMenu(entermac_menu, _T("輸入MAC(&M)"));
-	func_menu->Append(PKID_LOAD, _T("讀取(&L)"));
-	func_menu->Append(PKID_SAVE, _T("儲存(&S)"));
-	func_menu->Append(PKID_SETTING, _T("設定(&P)"));
+	func_menu->AppendSubMenu(entermac_menu, _T("Input MAC(&M)"));
+	func_menu->Append(PKID_LOAD, _T("Load(&L)"));
+	func_menu->Append(PKID_SAVE, _T("Save(&S)"));
+	func_menu->Append(PKID_SETTING, _T("Preferences(&P)"));
 	func_menu->AppendSeparator();
-	func_menu->Append(PKID_EXIT, _T("結束(&X)"));
-	help_menu->Append(wxID_ABOUT, _T("關於(&A)"));
+	func_menu->Append(PKID_EXIT, _T("Exit(&X)"));
+	help_menu->Append(wxID_ABOUT, _T("About(&A)"));
 	
-	menu_bar->Append(func_menu, _T("選項(&F)"));
-	menu_bar->Append(help_menu, _T("說明(&H)"));
+	menu_bar->Append(func_menu, _T("Options(&O)"));
+	menu_bar->Append(help_menu, _T("Help(&H)"));
 	
 	SetMenuBar(menu_bar);
 
@@ -140,8 +140,8 @@ void MainFrame::tray_restore(wxTaskBarIconEvent & event)
 wxMenu* MainFrame::GetTrayMenu()
 {
 	wxMenu *traymenu = new wxMenu;
-	traymenu->Append(PKID_RESTORE, _T("開啟PPPoE Killer(&O)"));
-	traymenu->Append(PKID_EXIT, _T("結束(&X)"));
+	traymenu->Append(PKID_RESTORE, _T("Restore PPPoE Killer(&O)"));
+	traymenu->Append(PKID_EXIT, _T("Exit(&X)"));
 	traymenu->SetNextHandler(this);
 	
 	return traymenu;
@@ -181,7 +181,7 @@ void MainFrame::close(wxCloseEvent& event)
 {
 	if(event.CanVeto())
 	{
-		m_tray->SetIcon(this->GetIcon(), "PPPoE Killer v1.1");
+		m_tray->SetIcon(this->GetIcon(), "PPPoE Killer v1.2");
 		this->Show(false);
 	}
 	else
@@ -211,7 +211,7 @@ MainPanel::MainPanel(wxFrame *frame)
 	if(adapters.size() > 0)
 		m_cards->SetSelection(0);
 
-	m_detect = new wxToggleButton(this, PKID_DETECT, "偵測");
+	m_detect = new wxToggleButton(this, PKID_DETECT, "Detect");
 	wxBoxSizer *cards_sizer = new wxBoxSizer(wxHORIZONTAL);
 	cards_sizer->Add(m_cards, 1, wxEXPAND | wxALL, 10);
 	cards_sizer->Add(m_detect, 0, wxEXPAND | wxALL, 10);
@@ -219,9 +219,9 @@ MainPanel::MainPanel(wxFrame *frame)
 	m_maclist = new wxListBox(this, PKID_MACLIST, wxDefaultPosition, wxDefaultSize, 0, NULL,
 							wxLB_SINGLE | wxLB_HSCROLL |wxLB_NEEDED_SB);
 
-	m_kill = new wxButton(this, PKID_KILL, "殺掉");
-	m_autokill = new wxToggleButton(this, PKID_AUTOKILL, "自動殺掉");
-	m_mark = new wxButton(this, PKID_MARK, "標記");
+	m_kill = new wxButton(this, PKID_KILL, "Kill");
+	m_autokill = new wxToggleButton(this, PKID_AUTOKILL, "AutoKill");
+	m_mark = new wxButton(this, PKID_MARK, "Mark");
 	wxBoxSizer *toolbar_sizer = new wxBoxSizer(wxVERTICAL);
 	toolbar_sizer->Add(m_kill, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
 	toolbar_sizer->AddSpacer(5);
