@@ -164,7 +164,7 @@ string MainFunction::getliststr(const VictimEntry & entry)
 	ret += entry.getLastSeenDate();
 
 	if(GNetTool::isLocalMAC(entry.getMac()) == true)
-		ret += " [我的電腦]";
+		ret += " [My Computer]";
 
 	ret += " ";
 	ret += entry.getDesc();
@@ -297,7 +297,7 @@ void MainFunction::pc_padi_detect(wxToggleButton *btn)
 		m_arpreq_dtr->start();
 
 		m_func_ifname = *ifname;
-		btn->SetLabel(wxT("偵測中"));
+		btn->SetLabel(wxT("Detecting"));
 		m_cards->Enable(false);
 	}
 	else
@@ -315,7 +315,7 @@ void MainFunction::pc_padi_detect(wxToggleButton *btn)
 		m_arpreq_dtr = NULL;
 
 		m_func_ifname = "";
-		btn->SetLabel(wxT("偵測"));
+		btn->SetLabel(wxT("Detect"));
 		m_cards->Enable(true);
 	}
 }
@@ -331,14 +331,14 @@ void MainFunction::pc_kill()
 
 	if(count(m_dstmac.begin(), m_dstmac.end(), (char)0) == 6)
 	{
-		::wxMessageBox(wxT("無法取得ISP MAC"));
+		::wxMessageBox(wxT("ISP MAC is unavailable"));
 		return;
 	}
 
 	wxString liststr = m_maclist->GetString(index);
-	if(liststr.find(wxT("我的電腦")) != string::npos)
+	if(liststr.find(wxT("My Computer")) != string::npos)
 	{
-		::wxMessageBox(wxT("多想一分鐘!你可以不必自殺!"));
+		::wxMessageBox(wxT("You can't suicide"));
 		return;
 	}
 
@@ -356,7 +356,7 @@ void MainFunction::pc_kill()
 	if(ite->second->isKillerAlive())
 	{
 		ite->second->stopKiller();
-		m_kill_btn->SetLabel(_T("殺掉"));
+		m_kill_btn->SetLabel(_T("Kill"));
 		m_autokill_btn->Enable();
 	}
 	else
@@ -366,7 +366,7 @@ void MainFunction::pc_kill()
 									ite->second->getInterfaceName(), m_packet_interval));
 		ite->second->setKiller(killer);
 		ite->second->startKiller();
-		m_kill_btn->SetLabel(_T("中止"));
+		m_kill_btn->SetLabel(_T("Stop"));
 		m_autokill_btn->Disable();
 	}
 }
@@ -383,15 +383,15 @@ void MainFunction::pc_autokill(wxToggleButton *btn)
 
 	if(count(m_dstmac.begin(), m_dstmac.end(), (char)0) == 6)
 	{
-		::wxMessageBox(wxT("無法取得ISP MAC"));
+		::wxMessageBox(wxT("ISP MAC is unavailable"));
 		btn->SetValue(false);
 		return;
 	}
 
 	wxString liststr = m_maclist->GetString(index);
-	if(liststr.find(wxT("我的電腦")) != string::npos)
+	if(liststr.find(wxT("My Computer")) != string::npos)
 	{
-		::wxMessageBox(wxT("多想一分鐘!你可以不必自殺!"));
+		::wxMessageBox(wxT("You can't suicide"));
 		btn->SetValue(false);
 		return;
 	}
@@ -449,7 +449,7 @@ void MainFunction::pc_mark()
 
 	string desc = ite->second->getDesc();
 
-	wxString input = ::wxGetTextFromUser(_T("輸入想要標記的描述"), _T("輸入"), desc);
+	wxString input = ::wxGetTextFromUser(_T("Enter the description"), _T("Input"), desc);
 	ite->second->setDesc(string(input.c_str()));
 
 	for(unsigned int i = 0; i < m_maclist->GetCount(); i++)
@@ -483,9 +483,9 @@ void MainFunction::pc_list_selected()
 	}
 
 	wxString liststr = m_maclist->GetString(index);
-	if(liststr.find(wxT("我的電腦")) != string::npos)
+	if(liststr.find(wxT("My Computer")) != string::npos)
 	{
-		m_kill_btn->SetLabel(_T("殺掉"));
+		m_kill_btn->SetLabel(_T("Kill"));
 		m_autokill_btn->SetValue(false);
 	}
 	else	
@@ -508,14 +508,14 @@ void MainFunction::pc_list_selected()
 		{
 			if(ite->second->getKillerID() == ManualKiller::KILLER_ID)
 			{
-				m_kill_btn->SetLabel(_T("中止"));
+				m_kill_btn->SetLabel(_T("Stop"));
 				m_kill_btn->Enable();
 				m_autokill_btn->SetValue(false);
 				m_autokill_btn->Disable();
 			}
 			else
 			{
-				m_kill_btn->SetLabel(_T("殺掉"));
+				m_kill_btn->SetLabel(_T("Kill"));
 				m_kill_btn->Disable();
 				m_autokill_btn->SetValue(true);
 				m_autokill_btn->Enable();
@@ -523,7 +523,7 @@ void MainFunction::pc_list_selected()
 		}
 		else
 		{
-			m_kill_btn->SetLabel(_T("殺掉"));
+			m_kill_btn->SetLabel(_T("Kill"));
 			m_kill_btn->Enable();
 			m_autokill_btn->SetValue(false);
 			m_autokill_btn->Enable();
@@ -630,7 +630,7 @@ bool MainFunction::pc_load()
 
 void MainFunction::pc_entermac()
 {
-	wxString s = ::wxGetTextFromUser(wxT("請依照格式輸入MAC ex. 00:AA:BB:CC:DD:EE"));
+	wxString s = ::wxGetTextFromUser(wxT("Enter MAC address, ex. 00:AA:BB:CC:DD:EE"));
 
 	if(s.IsEmpty())
 		return;
@@ -643,7 +643,7 @@ void MainFunction::pc_entermac()
 	}
 	catch(...)
 	{
-		::wxMessageBox(wxT("輸入錯誤"), wxT("Error"), wxOK|wxICON_ERROR);
+		::wxMessageBox(wxT("Input error"), wxT("Error"), wxOK|wxICON_ERROR);
 		return;
 	}
 	
@@ -657,7 +657,7 @@ void MainFunction::pc_entermac()
 		m_maclist->Append(this->getliststr(m_victims[macstr]));
 	}
 	else
-		::wxMessageBox(wxT("MAC已存在"), wxT("Error"), wxOK|wxICON_ERROR);
+		::wxMessageBox(wxT("The MAC is existed"), wxT("Error"), wxOK|wxICON_ERROR);
 }
 
 void MainFunction::pc_enterispmac()
