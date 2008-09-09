@@ -2,12 +2,11 @@
 #include <arpa/inet.h>
 #endif
 #include <pcap.h>
-#include <log4cxx/mdc.h>
+#include "Log.h"
 #include "GPacketDetector.h"
 
-using namespace glib;
+using namespace hippolib;
 using namespace std;
-using namespace log4cxx;
 
 GPacketDetector::GPacketDetector(const std::string & expr, const string & name)
 	: m_name(""), m_expression(expr), m_netmask("255.255.255.0")
@@ -15,11 +14,9 @@ GPacketDetector::GPacketDetector(const std::string & expr, const string & name)
 	pcap_if_t *alldevs, *d;
 	char errbuf[PCAP_ERRBUF_SIZE];
 
-	m_logger = Logger::getLogger("packet");
-
 	if (pcap_findalldevs(&alldevs, errbuf) == -1)
 	{
-		LOG4CXX_ERROR(m_logger, "get devices error, " +  string(errbuf));
+		//LOG4CXX_ERROR(m_logger, "get devices error, " +  string(errbuf));
 		return;
 	}
 
@@ -32,7 +29,7 @@ GPacketDetector::GPacketDetector(const std::string & expr, const string & name)
 
 	if(d == NULL)
 	{
-		LOG4CXX_ERROR(m_logger, "adapter " + name + " not found");
+		//LOG4CXX_ERROR(m_logger, "adapter " + name + " not found");
 		pcap_freealldevs(alldevs);
 		return;
 	}
@@ -50,14 +47,11 @@ void GPacketDetector::run()
 {
 	if(m_name == "")
 	{
-		LOG4CXX_ERROR(m_logger, "packet detector not initialized"); 
+		//LOG4CXX_ERROR(m_logger, "packet detector not initialized"); 
 		return;
 	}
 
-	MDC::put("devname", m_name);
-	MDC::put("expr", m_expression);
-
-	LOG4CXX_DEBUG(m_logger, "detector starts");
+	//LOG4CXX_DEBUG(m_logger, "detector starts");
 
 	pcap_t *adhandle = NULL;
 	char errbuf[PCAP_ERRBUF_SIZE];
@@ -80,14 +74,14 @@ void GPacketDetector::run()
 									 errbuf								// error buffer
 									 )) == NULL)
 	{
-		LOG4CXX_ERROR(m_logger, "Unable to open the adapter. " + s + " is not supported by WinPcap");
+		//LOG4CXX_ERROR(m_logger, "Unable to open the adapter. " + s + " is not supported by WinPcap");
 		return;
 	}
 	
 	//compile the filter
 	if(pcap_compile(adhandle, &fcode, (char*)m_expression.c_str(), 1, inet_addr(m_netmask.c_str())) <0 )
 	{
-		LOG4CXX_ERROR(m_logger, "Unable to compile the packet filter. Check the syntax: " + m_expression);
+		//LOG4CXX_ERROR(m_logger, "Unable to compile the packet filter. Check the syntax: " + m_expression);
 		pcap_close(adhandle);
 		return;
 	}
@@ -95,7 +89,7 @@ void GPacketDetector::run()
 	// set to nonblocking mode
 	if(pcap_setnonblock(adhandle, 1, errbuf) < 0)
 	{
-		LOG4CXX_ERROR(m_logger, "Unable to set nonblocking mdoe");
+		//LOG4CXX_ERROR(m_logger, "Unable to set nonblocking mdoe");
 		pcap_close(adhandle);
 		return;
 	}
@@ -103,7 +97,7 @@ void GPacketDetector::run()
 	//set the filter
 	if(pcap_setfilter(adhandle, &fcode) < 0)
 	{
-		LOG4CXX_ERROR(m_logger, "Error setting the filter");
+		//LOG4CXX_ERROR(m_logger, "Error setting the filter");
 		pcap_close(adhandle);
 		return;
 	}
@@ -113,13 +107,13 @@ void GPacketDetector::run()
 	{
 		if(res == 0)
 		{
-			GThread::sleep(100);
+			thread::sleep(100);
 			continue;
 		}
 		msig_detected((const unsigned char*)pkt_data, pkt_header->len);
 	}
 
-	LOG4CXX_DEBUG(m_logger, "detector ends");
+	//LOG4CXX_DEBUG(m_logger, "detector ends");
 	pcap_close(adhandle);
 }
 

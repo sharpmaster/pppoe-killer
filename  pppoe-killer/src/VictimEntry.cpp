@@ -1,8 +1,6 @@
-#include <glib/GBase64.h>
 #include "VictimEntry.h"
 
 using namespace std;
-using namespace glib;
 
 VictimEntry::VictimEntry()
 {

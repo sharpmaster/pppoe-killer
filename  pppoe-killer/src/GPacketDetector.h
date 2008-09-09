@@ -4,11 +4,9 @@
 #include <string>
 #include <boost/signal.hpp>
 #include <boost/signals/slot.hpp>
-#include <log4cxx/logger.h>
-#include <glib/GThread.h>
-#include <glib/GLogger.h>
+#include <hippolib/system/thread.hpp>
 
-class GPacketDetector : public glib::GThread {
+class GPacketDetector : public hippolib::thread {
 public:
 	GPacketDetector(const std::string & expr, const std::string & name);
 	~GPacketDetector() {}
@@ -26,7 +24,6 @@ private:
 	std::string m_netmask;
 
 	boost::signal2<void, const unsigned char*, int> msig_detected;
-	log4cxx::LoggerPtr m_logger;
 };
 
 #endif
