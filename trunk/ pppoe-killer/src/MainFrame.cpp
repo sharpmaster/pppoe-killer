@@ -1,4 +1,4 @@
-#define _WINSOCKAPI_
+#include <hippolib/net/nettool.hpp>
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
@@ -8,22 +8,16 @@
 #include <wx/tglbtn.h>
 #include <wx/grid.h>
 #include <wx/aboutdlg.h>
+#include <hippolib/system/thread.hpp>
 #include "pppoe.xpm"
 #include "Resource.h"
-#include <glib/GProperties.h>
-#include <glib/GThread.h>
-#include <glib/net/GNetTool.h>
-#include <log4cxx/logger.h>
-#include <log4cxx/propertyconfigurator.h>
-#include <log4cxx/helpers/exception.h>
+#include <hippolib/util/properties.hpp>
 #include "MainFrame.h"
 #include "MainFunction.h"
 #include "PreferenceDialog.h"
 
-using namespace glib;
-using namespace glib::net;
+using namespace hippolib;
 using namespace std;
-using namespace log4cxx;
 
 IMPLEMENT_APP(MainApp)
 
@@ -38,15 +32,6 @@ bool MainApp::OnInit() {
 		return false;
 	}
 #endif
-
-	try
-	{
-		PropertyConfigurator::configure(File("log4cxx.conf"));
-	}
-	catch(...)
-	{
-		// do something
-	}
 
 	wxIcon icon(pppoe_xpm);
 	// Create the main frame window
@@ -123,7 +108,7 @@ void MainFrame::helperthread()
 	while(true)
 	{
 		m_panel->GetMainFunction()->refreshButton();
-		GThread::sleep(500);
+		thread::sleep(500);
 	}
 }
 
@@ -193,11 +178,11 @@ void MainFrame::close(wxCloseEvent& event)
 MainPanel::MainPanel(wxFrame *frame)
 	: wxPanel(frame, wxID_ANY)
 {
-	vector<GNetAdapter> adapters;
+	vector<netadapter> adapters;
 
-	adapters = GNetTool::getLocalAdapters();
+	adapters = nettool::getLocalAdapters();
 	m_cards = new wxComboBox(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0, NULL, wxCB_READONLY);
-	for(vector<GNetAdapter>::size_type i = 0; i < adapters.size(); i++)
+	for(vector<netadapter>::size_type i = 0; i < adapters.size(); i++)
 	{
 		string *clientData = new string;
 		*clientData = adapters[i].getName();

@@ -7,7 +7,6 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/noncopyable.hpp>
-#include <glib/GLogger.h>
 #include "Killer.h"
 
 class VictimEntry : boost::noncopyable

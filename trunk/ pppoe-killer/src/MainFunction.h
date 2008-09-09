@@ -8,7 +8,6 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/thread/mutex.hpp>
-#include <log4cxx/logger.h>
 
 class GPacketDetector;
 class AutoKiller;
@@ -56,8 +55,6 @@ private:
 	typedef boost::ptr_map<std::string, VictimEntry>::iterator VITE;
 
 	std::string m_func_ifname;
-
-	log4cxx::LoggerPtr m_logger;
 
 	std::string getMACString(const boost::array<unsigned char, 6> & mac);
 	boost::array<unsigned char, 6> parseMAC(const std::string & macstr);

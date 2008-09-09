@@ -14,7 +14,7 @@ BEGIN_EVENT_TABLE(PreferenceDialog, wxDialog)
 END_EVENT_TABLE()
 
 PreferenceDialog::PreferenceDialog(wxWindow* parent, MainFunction *func)
-	: wxDialog(parent, PKID_PREFDIALOG, _T("設定選項"))
+	: wxDialog(parent, PKID_PREFDIALOG, wxString(_T("設定選項")))
 {
 	m_notebook = new wxNotebook(this, wxID_ANY);
 	m_packet_panel = new PacketPanel(m_notebook);

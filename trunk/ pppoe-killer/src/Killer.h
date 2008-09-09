@@ -2,11 +2,9 @@
 #define _KILLER_H
 
 #include <boost/array.hpp>
-#include <glib/GThread.h>
-#include <log4cxx/mdc.h>
-#include <log4cxx/logger.h>
+#include <hippolib/system/thread.hpp>
 
-class Killer : public glib::GThread
+class Killer : public hippolib::thread
 {
 public:
 	Killer(const int id,

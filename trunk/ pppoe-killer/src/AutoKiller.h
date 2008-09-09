@@ -1,8 +1,7 @@
 #ifndef _AUTOKILLER_H
 #define _AUTOKILLER_H
 
-#include <glib/GThread.h>
-#include <glib/GLogger.h>
+#include <hippolib/system/thread.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <boost/signal.hpp>
 #include <boost/signals/slot.hpp>
@@ -28,7 +27,7 @@ protected:
 private:
 	boost::mutex m_padi_mutex;
 	boost::scoped_ptr<PADTGenerator> m_padt_gnr;
-	log4cxx::LoggerPtr m_logger;
+	//log4cxx::LoggerPtr m_logger;
 	boost::signal1<void, const unsigned char*> msig_detected;
 
 	void padi_detected(const unsigned char* packet, int len);

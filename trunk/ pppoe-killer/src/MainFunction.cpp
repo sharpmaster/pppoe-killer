@@ -1,4 +1,4 @@
-#include <glib/net/GNetTool.h>
+#include <hippolib/net/nettool.hpp>
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
@@ -11,10 +11,9 @@
 #include <boost/algorithm/string/find.hpp>
 #include <wx/tglbtn.h>
 #include <wx/grid.h>
-#include <glib/GProperties.h>
-#include <glib/GLogger.h>
-#include <glib/GBase64.h>
-#include <glib/GTime.h>
+#include <hippolib/util/properties.hpp>
+#include <hippolib/util/base64.hpp>
+#include <hippolib/system/time.hpp>
 #include "Resource.h"
 #include "AutoKiller.h"
 #include "ManualKiller.h"
@@ -25,9 +24,7 @@
 
 
 using namespace std;
-using namespace glib;
-using namespace glib::net;
-using namespace log4cxx;
+using namespace hippolib;
 namespace ba = boost::algorithm;
 
 MainFunction::MainFunction(wxComboBox* cards, wxListBox *list, wxStaticText *ispmac,
@@ -50,9 +47,6 @@ MainFunction::MainFunction(wxComboBox* cards, wxListBox *list, wxStaticText *isp
 		m_func_ifname = "";
 	else
 		m_func_ifname = *((string*)(m_cards->GetClientData(index)));
-	
-
-	m_logger = Logger::getLogger("main");
 }
 
 MainFunction::~MainFunction()
@@ -92,7 +86,7 @@ void MainFunction::refreshButton()
 string MainFunction::getMACString(const boost::array<unsigned char, 6> & mac)
 {
 	stringstream ss;
-	string s = GNetTool::getMACString(mac);
+	string s = nettool::getMACString(mac);
 
 	ss << s.substr(0, 2) << ":" << s.substr(2, 2) << ":" <<
 		 s.substr(4, 2) << ":" << s.substr(6, 2) << ":" <<
@@ -115,7 +109,7 @@ boost::array<unsigned char, 6> MainFunction::parseMAC(const std::string & macstr
 
 	try
 	{
-		ret = GNetTool::parseMAC(ss.str());
+		ret = nettool::parseMAC(ss.str());
 	}
 	catch(...)
 	{
@@ -147,7 +141,7 @@ void MainFunction::append_data(const boost::array<unsigned char, 6> & macbin, co
 	v->setMac(macbin);
 	s = getMACString(macbin);
 	v->setInterfaceName(ifname);
-	v->setLastSeenDate(GTime::GetTimeString());
+	v->setLastSeenDate(hippolib::time::GetTimeString("%Y/%m/%d %H:%M:%S"));
 	v->setDesc(desc);
 	v->setAutoKill(false);
 
@@ -163,7 +157,7 @@ string MainFunction::getliststr(const VictimEntry & entry)
 	ret = macstr + " ";
 	ret += entry.getLastSeenDate();
 
-	if(GNetTool::isLocalMAC(entry.getMac()) == true)
+	if(nettool::isLocalMAC(entry.getMac()) == true)
 		ret += " [My Computer]";
 
 	ret += " ";
@@ -196,7 +190,7 @@ void MainFunction::padi_srcmac_detected(const unsigned char* srcmac)
 	}
 	else
 	{
-		ite->second->setLastSeenDate(GTime::GetTimeString());
+		ite->second->setLastSeenDate(hippolib::time::GetTimeString("%Y/%m/%d %H:%M:%S"));
 		wxString macstr = getMACString(ite->second->getMac());
 		
 		for(unsigned int i = 0; i < m_maclist->GetCount(); i++)
@@ -247,7 +241,7 @@ void MainFunction::arpreq_detected(const unsigned char* packet, int len)
 	}
 	else
 	{
-		ite->second->setLastSeenDate(GTime::GetTimeString());
+		ite->second->setLastSeenDate(hippolib::time::GetTimeString("%Y/%m/%d %H:%M:%S"));
 		string desc = ite->second->getDesc();
 		if(!(ba::find_first(desc, ipstr)))
 		{
@@ -290,11 +284,11 @@ void MainFunction::pc_padi_detect(wxToggleButton *btn)
 		m_padi_dtr->AddReactor(boost::bind(&MainFunction::padi_detected, this, _1, _2));
 		m_pado_dtr = new GPacketDetector("ether[15]=7 and ether proto 0x8863", *ifname);
 		m_pado_dtr->AddReactor(boost::bind(&MainFunction::pado_detected, this, _1, _2));
-		m_arpreq_dtr = new GPacketDetector("arp and ether[20:2]=0x1", *ifname);
-		m_arpreq_dtr->AddReactor(boost::bind(&MainFunction::arpreq_detected, this, _1, _2));
+		//m_arpreq_dtr = new GPacketDetector("arp and ether[20:2]=0x1", *ifname);
+		//m_arpreq_dtr->AddReactor(boost::bind(&MainFunction::arpreq_detected, this, _1, _2));
 		m_padi_dtr->start();
 		m_pado_dtr->start();
-		m_arpreq_dtr->start();
+		//m_arpreq_dtr->start();
 
 		m_func_ifname = *ifname;
 		btn->SetLabel(wxT("Detecting"));
@@ -310,9 +304,9 @@ void MainFunction::pc_padi_detect(wxToggleButton *btn)
 		delete m_pado_dtr;
 		m_pado_dtr = NULL;
 
-		m_arpreq_dtr->waitStop();
-		delete m_arpreq_dtr;
-		m_arpreq_dtr = NULL;
+		//m_arpreq_dtr->waitStop();
+		//delete m_arpreq_dtr;
+		//m_arpreq_dtr = NULL;
 
 		m_func_ifname = "";
 		btn->SetLabel(wxT("Detect"));

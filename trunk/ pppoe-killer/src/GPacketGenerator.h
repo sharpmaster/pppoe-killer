@@ -1,13 +1,11 @@
 #ifndef _PACKETGENERATOR_H
 #define _PACKETGENERATOR_H
 
-#include <log4cxx/logger.h>
 #include <string>
 
 class GPacketGenerator
 {
 private:
-	log4cxx::LoggerPtr m_logger;
 	void _initdevice(const std::string & name);
 protected:
 	std::string m_name;

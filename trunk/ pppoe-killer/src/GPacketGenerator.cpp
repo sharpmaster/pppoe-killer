@@ -1,10 +1,9 @@
 #include <pcap.h>
 #include <libnet.h>
-#include <log4cxx/mdc.h>
+#include "Log.h"
 #include "GPacketGenerator.h"
 
 using namespace std;
-using namespace log4cxx;
 
 GPacketGenerator::GPacketGenerator(const string & name)
 {
@@ -12,11 +11,10 @@ GPacketGenerator::GPacketGenerator(const string & name)
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	m_libc = NULL;
-	m_logger = Logger::getLogger("packet");
 
 	if (pcap_findalldevs(&alldevs, errbuf) == -1)
 	{
-		LOG4CXX_ERROR(m_logger, "get devices error, " +  string(errbuf));
+		//LOG4CXX_ERROR(m_logger, "get devices error, " +  string(errbuf));
 		return;
 	}
 
@@ -29,7 +27,7 @@ GPacketGenerator::GPacketGenerator(const string & name)
 
 	if(d == NULL)
 	{
-		LOG4CXX_ERROR(m_logger, "adapter " + name + " not found");
+		//LOG4CXX_ERROR(m_logger, "adapter " + name + " not found");
 		return;
 	}
 
@@ -55,8 +53,8 @@ void GPacketGenerator::_initdevice(const string & name) {
 
 	m_name = s;
 	m_libc = (void*)libnet_init(LIBNET_LINK, (char*)m_name.c_str(), errbuf);
-	if(m_libc == NULL)
-		LOG4CXX_ERROR(m_logger, "init libnet error: " + string(errbuf) + ", name: " + name);
+	//if(m_libc == NULL)
+	//	LOG4CXX_ERROR(m_logger, "init libnet error: " + string(errbuf) + ", name: " + name);
 }
 
 void GPacketGenerator::Clear()
